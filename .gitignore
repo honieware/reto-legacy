@@ -2,3 +2,5 @@ json/config.json
 cogs/__pycache__
 __pycache__
 logs
+.github
+db
