@@ -6,6 +6,12 @@
 [![Add Reto](assets/add-reto.png)](https://discord.com/oauth2/authorize?client_id=591466921812164608&permissions=1342524496&scope=bot)
 [![Join Server](assets/join-server.png)](https://discord.gg/RAwfrty)
 
+## ⚠️ Long-term Support
+
+Starting **March 1st, 2022**, Reto (now Reto Legacy) will enter Long-Term Support, meaning no major updates aside from bug fixes will be launched. You can continue using Reto Legacy until **March 2023**, in which it'll reach End of Life and will no longer be in active development. Thank you for your support over the years!
+
+Reto isn't going anywhere, however - a version of Reto built from the ground up, code-named Retool, is in development - with an ETA of April 2022. The hosted version of Reto (which you can invite over to your server without installing anything) will migrate to this new version around this date.
+
 ## ⚙️ Features
 `The bot's default prefix is "?".`
 - Look at your own (or others') karma by checking your **?profile**.
