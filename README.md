@@ -16,7 +16,7 @@
 - These are just the main ones - check out the entire command list with **?help**!
 
 ## 🙋 Any questions?
-Check the [FAQ](https://github.com/despedite/reto/wiki/Frequently-Asked-Questions) and see if that clear things up! If not, you can always come say hi at our [support server](https://discord.gg/RAwfrty).
+Check the [FAQ](https://github.com/honiemun/reto-legacy/wiki/Frequently-Asked-Questions) and see if that clear things up! If not, you can always come say hi at our [support server](https://discord.gg/RAwfrty).
 
 ## 👨‍💻 Self-hosting Reto
-Want to host Reto on your own machine? [Read this guide](https://github.com/despedite/reto/wiki/Self-hosting-Reto) on how to do exactly that!
+Want to host Reto on your own machine? [Read this guide](https://github.com/honiemun/reto-legacy/wiki/Self-hosting-Reto) on how to do exactly that!
