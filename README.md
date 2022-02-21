@@ -1,0 +1,2 @@
+# reto-legacy
+Discord bot :)
