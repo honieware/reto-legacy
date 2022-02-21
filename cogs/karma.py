@@ -94,11 +94,11 @@ class Karma(commands.Cog):
 		"""Check this server's users with the most karma."""
 		db.clear_cache()
 		User = Query()
-		server = str(ctx.message.guild.id)
+		server = ctx.message.guild.id
 		result = db.search(User.servers.all([server]))
 		leaderboard = {} # Prepares an empty dictionary.
 		for x in result: # For each entry in the database:
-			leaderboard[x.get("username")] = int(x.get("points")) # ...save the user's ID and its amount of points in a new Python database.
+			leaderboard[x.get("username")] = int(x.get(str(server))) # ...save the user's ID and its amount of points in a new Python database.
 		leaderboard = sorted(leaderboard.items(), key = lambda x : x[1], reverse=True) # Sort this database by amount of points.
 		s = ""
 		i = 0
