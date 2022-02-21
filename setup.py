@@ -18,6 +18,7 @@ setup(name='Reto Legacy',
           'aiofiles',
           'tinydb-encrypted-jsonstorage',
           'colorama',
-          'yaspin'
+          'yaspin',
+          'colorthief'
       ],
       zip_safe=False)

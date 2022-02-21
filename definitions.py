@@ -32,7 +32,7 @@ def createConfigFile():
 	
 	# Bot token
 	print("\nEnter BOT TOKEN (2/11)")
-	print("This is the bot token Discord generates for you when you've created a bot on the Discord Developer Portal. Here's an in-depth guide on how to create a Discord bot, if you haven't done so already. DO NOT SHARE THIS TOKEN.")
+	print("This is the bot token Discord generates for you when you've created a bot on the Discord Developer Portal. DO NOT SHARE THIS TOKEN.")
 	tknInput = input("")
 	if not tknInput:
 		sys.exit()
@@ -80,10 +80,10 @@ def createConfigFile():
 	# Github Username
 	print("\nEnter GITHUB REPOSITORY (8/11):")
 	print("If you're hosting Reto on Github, drop your repository name here! This will help it keep track of updates and inform you if you've got to update it.\nIf you haven't got one (or would rather be informed of the main Reto branch's updates), leave as default.")
-	print("(default: reto)")
+	print("(default: reto-legacy)")
 	rpoInput = input("")
 	if not rpoInput:
-		rpoInput = "reto"	
+		rpoInput = "reto-legacy"	
 	# Bot owner
 	print("\nEnter BOT OWNER (9/11):")
 	print("An array of the people that are the bot's developers. You should fill this out with your user ID to gain access to certain bot owner specific commands (and a badge on your ?profile).")

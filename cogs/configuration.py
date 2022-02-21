@@ -19,7 +19,7 @@ from datetime import datetime, date
 import logging
 
 # sharedFunctions
-from sharedFunctions import sendErrorEmbed, getCurrentPrefix, formatMessage, createAutovoteEmbed
+from sharedFunctions import sendErrorEmbed, getCurrentPrefix, formatMessage
 
 # ----------------------------------------------------------------------------------------------
 
@@ -315,90 +315,43 @@ class Configuration(commands.Cog):
 	# -------------------------
 	#	 ENABLE AUTO-VOTES
 	# -------------------------
-
+				
 	@commands.command(aliases=['autovotes', 'autoreact', 'autoreacts', 'autoreactions'], description="Enable/disable the bot reacting to every message in a certain channel! This is useful for image channels, where you'd want to have every post already reacted to with a Heart and a Crush to encourage voting. (You can also enable this server-wide, with ?autovote server.)")
 	@commands.has_permissions(manage_guild=True)
 	async def autovote(self,ctx,*args):
 		"""Enable/disable the bot reacting to every message in a channel!"""
-		
-		channelId = str(ctx.message.channel.id)
-		
-		# Check if the channel exists.
-		possibleConfigs = [
-			{
-				"emoji": "📜",
-				"name": "Text",
-				"description": "Regular, text-only messages.",
-				"database": "text"
-			},
-			{
-				"emoji": "🖼️",
-				"name": "Images",
-				"description": "Images attached to regular messages.",
-				"database": "images"
-			},
-			{
-				"emoji": "🎥",
-				"name": "Videos",
-				"description": "Anything with them moving pictures!",
-				"database": "videos"
-			},
-			{
-				"emoji": "🗄️",
-				"name": "Files",
-				"description": "Attachments - .txt, .zip, etcetera.",
-				"database": "files"
-			},
-			{
-				"emoji": "📎",
-				"name": "Embeds",
-				"description": "Links, formatted bot messages...",
-				"database": "embeds"
-			}
-		]
 
-		channelConfig = chan.get(Query()['server'] == ctx.message.guild.id)
-		autovoteEmbed = await createAutovoteEmbed(channelId, possibleConfigs, channelConfig)
-		sentEmbed = await ctx.send(embed=autovoteEmbed)
-		
-		emojiArray = []
-		for config in possibleConfigs:
-			emojiArray.append(config["emoji"])
-			await sentEmbed.add_reaction(emoji=config["emoji"])
-		
-		def check(reaction, user):
-			return user == ctx.message.author and str(reaction.emoji) in emojiArray and reaction.message.channel == ctx.message.channel
-		
-		try:
-			reaction, user = await self.client.wait_for('reaction_add', timeout=60.0, check=check)
-		except asyncio.TimeoutError:
-			await sentEmbed.clear_reactions()
+		prefix = await getCurrentPrefix(ctx)
+		if args:
+			if args[0] == "server":
+				# Check if the channel exists.
+				result = chan.get(Query()['server'] == ctx.message.guild.id)
+				if (result and result['serverwide'] == True):
+					await ctx.send("The Autovote feature has been disabled server-wide. This does not affect channels that already have Autovote enabled - those need to be disabled manually.\nTo enable it, use " + prefix + "autovote server again.")
+					chan.update({'serverwide': False}, where('server') == ctx.message.guild.id)
+				else:
+					await ctx.send("The Autovote feature has been enabled server-wide! To disable it, use " + prefix + "autovote server again.")
+					exists = chan.count(Query().server == ctx.message.guild.id)
+					if (exists == 0):
+						chan.insert({'server': ctx.message.guild.id, 'channels': [], 'serverwide': True})
+					else:
+						chan.update({'serverwide': True}, where('server') == ctx.message.guild.id)
 		else:
-			while True:
-				try:
-					for config in possibleConfigs:
-						if config["emoji"] == reaction.emoji:
-							if (channelConfig and channelId + "-" + config["database"] in channelConfig and channelConfig[channelId + "-" + config["database"]] == True):
-								chan.update({channelId + "-" + config["database"]: False}, where('server') == ctx.message.guild.id)
-							else:
-								exists = chan.count(Query().server == ctx.message.guild.id)
-								# If the channel doesn't exist.
-								if (exists == 0):
-									chan.insert({'server': ctx.message.guild.id})
-								chan.update({channelId + "-" + config["database"]: True}, where('server') == ctx.message.guild.id)
-					
-					# Update the old embed
-					channelConfig = chan.get(Query()['server'] == ctx.message.guild.id)
-					autovoteEmbed = await createAutovoteEmbed(channelId, possibleConfigs, channelConfig)
-					await sentEmbed.edit(embed=autovoteEmbed)
-
-					# Remove emoji
-					await reaction.remove(ctx.message.author)
-
-					reaction, user = await self.client.wait_for('reaction_add', timeout=60.0, check=check)
-				except asyncio.TimeoutError:
-					await sentEmbed.clear_reactions()
-					break
+			# Check if the channel exists.
+			result = chan.get(Query()['server'] == ctx.message.guild.id)
+			if (result and ctx.message.channel.id in result['channels']):
+				await ctx.send("The Autovote feature has been disabled on **#" + ctx.message.channel.name + "** successfully.\nTo re-enable this feature, use " + prefix + "autovote on this channel again.")
+				newresult = result['channels']
+				newresult.remove(ctx.message.channel.id)
+				chan.update({'channels': newresult}, where('server') == ctx.message.guild.id)
+			else:
+				plus = discord.utils.get(ctx.message.guild.emojis, name="plus")
+				minus = discord.utils.get(ctx.message.guild.emojis, name="minus")
+				await ctx.send("The Autovote feature has been enabled on the channel **#" + ctx.message.channel.name + "**! From now on, every post in this channel will be auto-reacted to with " + str(plus) + " and " + str(minus) + ", to encourage voting.\nTo disable this feature, use " + prefix + "autovote on this channel again.")
+				exists = chan.count(Query().server == ctx.message.guild.id)
+				if (exists == 0):
+					chan.insert({'server': ctx.message.guild.id, 'channels': [], 'serverwide': False})
+				chan.update(add('channels',[ctx.message.channel.id]), where('server') == ctx.message.guild.id)
 
 	# -------------------------
 	#	CHANGE NOTIFICATIONS
@@ -445,7 +398,7 @@ class Configuration(commands.Cog):
 	async def reattach(self, ctx, channel: discord.TextChannel):
 		"""Make a pre-existing channel into the Best Of!"""
 		server = str(ctx.message.guild.id)
-		best.upsert({'channelid': channel.id}, Query().serverid == server)
+		best.upsert({'channelid': channel.id, 'serverid': server}, Query().serverid == server)
 		await ctx.send("**Gotcha!** The new Best Of channel is now " + channel.mention + ".")
 
 	# -------------------------
@@ -457,30 +410,34 @@ class Configuration(commands.Cog):
 	async def notificationmessages(self, ctx, *args):
 		"""Create your own custom notification messages."""
 		errormessage = """
-		\n\n**Argument 1:** Message type
-		\n`[plus/minus/10/10repeat/default]`
-		\n`10repeat` represents the message that appears when a message is starred multiple times.
-		\n`default` will reset all of your set messages!
-		\n\n**Argument 2:** Message
-		\n`"string"`
-		\n(Inbetween quotes.)
-		\n\n**Message modifiers** (usable in Argument 2)
-		\n`{u}`: Username
-		\n`{um}`: Username (mentions/pings the user)
-		\n`{c}`: Channel name
-		\n`{cm}`: Channel name (links to the channel)
-		\n`{b}`: Best Of name
-		\n`{bm}`: Best Of name (links to the channel)
-		\n`{m}`: Message
-		\n`{s}`: Server name
-		\n`{p}`: Points added or subtracted
-		\n`{k}`: Total karma count
-		\n`\\n`: Newline (pressing RETURN/ENTER)
+		\n**Argument 1:** Message type
+		`[plus/minus/10/10repeat/default]`
+		`10repeat` represents the message that appears when a message is starred multiple times.
+		`default` will reset all of your set messages!
+		\n**Argument 2:** Message
+		`"string"`
+		(Inbetween quotes.)
+		\n**Message modifiers** (usable in Argument 2)
+		`{u}`: Username
+		`{um}`: Username (mentions/pings the user)
+		`{c}`: Channel name
+		`{cm}`: Channel name (links to the channel)
+		`{b}`: Best Of name
+		`{bm}`: Best Of name (links to the channel)
+		`{m}`: Message
+		`{s}`: Server name
+		`{p}`: Points added or subtracted
+		`{k}`: Total karma count (local)
+		`{gk}`: Total karma count (global)
+		`\\n`: Newline (pressing RETURN/ENTER)
 		"""
-		types = ["plus", "minus", "10"]
+		types = ["plus", "minus", "10", "10repeat"]
 		server = str(ctx.message.guild.id)
-		notifmode = best.search(Query().serverid == server)
-		notifmode = notifmode[0]['notification']
+		notifmode = best.get(Query().serverid == server)
+		if "notification" in notifmode:
+			notifmode = notifmode['notification']
+		else:
+			notifmode = "message"
 		prefix = await getCurrentPrefix(ctx)
 
 		if (notifmode != "message"):
@@ -495,8 +452,6 @@ class Configuration(commands.Cog):
 					await sendErrorEmbed(ctx, "The message should be inbetween quotes!" + errormessage)
 				else:
 					messageType = args[0]
-					if args[0] == "10repeat":
-						messageType = "10"
 					best.upsert({'serverid': server, messageType + "Message": args[1]}, Query().serverid == server)
 					parsed = await formatMessage(args[1], ctx.message)
 					await ctx.send("**You got it!** The new message for the `" + args[0] + "` trigger is " + parsed)

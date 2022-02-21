@@ -131,31 +131,12 @@ class Reaction(commands.Cog):
 		if not message.author.bot and not isinstance(message.channel, discord.channel.DMChannel):
 			pre = customprefix.search(Query().server == message.guild.id)
 			if pre and not message.content.startswith(pre[0]['prefix']) or not pre and not message.content.startswith('?') : # shouldn't invoke commands
-				
-				messageType = "text"
-				# Get first attachment
-				if(len(message.attachments) > 0):
-					attachment = message.attachments[0].url
-					# Determine type
-					for e in ['jpg','jpeg','png','webp','gif']:
-						if attachment[-len(e)-1:]==f'.{e}':
-							messageType = "images"
-					for e in ['mp4', 'mov']:
-						if attachment[-len(e)-1:]==f'.{e}':
-							messageType = "videos"
-					if messageType == "text":
-						messageType = "files"
-				# Embeds take priority
-				if (message.embeds):
-					messageType = "embeds"
-
-				channelConfig = chan.get(Query()['server'] == message.guild.id)
-				if (channelConfig):
-					if str(message.channel.id) + "-" + messageType in channelConfig and channelConfig[str(message.channel.id) + "-" + messageType] == True:
-						plus = discord.utils.get(message.guild.emojis, name="plus")
-						minus = discord.utils.get(message.guild.emojis, name="minus")
-						await message.add_reaction(plus)
-						await message.add_reaction(minus)
+				result = chan.get(Query()['server'] == message.guild.id)
+				if (result and (result['serverwide'] == True or message.channel.id in result['channels'])):
+					plus = discord.utils.get(message.guild.emojis, name="plus")
+					minus = discord.utils.get(message.guild.emojis, name="minus")
+					await message.add_reaction(plus)
+					await message.add_reaction(minus)
 
 
 
