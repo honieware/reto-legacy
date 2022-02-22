@@ -19,6 +19,7 @@ setup(name='Reto Legacy',
           'tinydb-encrypted-jsonstorage',
           'colorama',
           'yaspin',
-          'colorthief'
+          'colorthief',
+          'requests'
       ],
       zip_safe=False)
