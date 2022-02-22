@@ -21,6 +21,18 @@ from colorthief import ColorThief
 
 # ----------------------------------------------------------------------------------------------
 
+async def createAutovoteEmbed(channelId, possibleConfigs, channelConfig):
+	embed = discord.Embed(title="Autovote settings", description="Get Reto to react to new posts on this channel.")
+	for config in possibleConfigs:
+		# Search if enabled or not
+		enabled = "**[❌]**"
+		if (channelConfig and channelId + "-" + config["database"] in channelConfig and channelConfig[channelId + "-" + config["database"]] == True):
+			enabled = "**[✔️]**"
+		embed.add_field(name=config["emoji"] + " " + config["name"], value=enabled + " " + config["description"], inline=False)
+	embed.set_footer(text="The reactions below will dissapear after a minute of inactivity.")
+	return embed
+
+
 async def getCurrentPrefix(ctx):
 	customprefix.clear_cache()
 	if not ctx.message.guild: # is on DMs
@@ -496,10 +508,10 @@ async def createBestOfEmbed(message):
 				if attachmentUrl[-len(e)-1:]==f'.{e}':
 					postIncludes = "an audio file"
 			# Send a footer warning!
-			attachmentUrl.set_footer(text="This post includes " + postIncludes + "! Click on the link above to see the attachment.")
+			embed.set_footer(text="This post includes " + postIncludes + "! Click on the link above to see the attachment.")
 		# If there's more than one image, set a warning on the footer!
 		if(len(message.attachments) > 1 and validAttachment == True):
-			attachmentUrl.set_footer(text="This post includes more than one image! Click on the link above to see the rest.")
+			embed.set_footer(text="This post includes more than one image! Click on the link above to see the rest.")
 
 	# --- PARSE THROUGH EMBEDS ---
 	
@@ -648,7 +660,7 @@ async def reactionAdded(bot, payload):
 		"10": {
 			"mode": "add",
 			"points": 10,
-			"message": "Congrats, **{u}**! Your post will be forever immortalized in the **{bm}** channel. You now have {ke} {k} **{kn}*. (+{p})",
+			"message": "Congrats, **{u}**! Your post will be forever immortalized in the **{bm}** channel. You now have {ke} {k} **{kn}**. (+{p})",
 			"bestOf": True,
 			"requiresCurator": True,
 			"starsAdded": 1
@@ -656,7 +668,7 @@ async def reactionAdded(bot, payload):
 		"10repeat": {
 			"mode": "add",
 			"points": 10,
-			"message": "Congrats, **{u}**! Your post was so good it was Starred more than once. You now have {ke} {k} **{kn}*. (+{p})",
+			"message": "Congrats, **{u}**! Your post was so good it was Starred more than once. You now have {ke} {k} **{kn}**. (+{p})",
 			"bestOf": False,
 			"requiresCurator": True,
 			"starsAdded": 1
@@ -784,12 +796,13 @@ async def getLocalKarma (nameOrEmoji, message):
 	elif nameOrEmoji == "emoji":
 		value = "<:karma:862440157525180488>"
 	
-	if "karmaname" in curKarmaSettings and nameOrEmoji == "name":
-		if curKarmaSettings['karmaname'] != False:
-			value = curKarmaSettings['karmaname']
-	if "karmaemoji" in curKarmaSettings and nameOrEmoji == "emoji":
-		if curKarmaSettings['karmaemoji'] != False:
-			value = curKarmaSettings['karmaemoji']
+	if curKarmaSettings:
+		if "karmaname" in curKarmaSettings and nameOrEmoji == "name":
+			if curKarmaSettings['karmaname'] != False:
+				value = curKarmaSettings['karmaname']
+		if "karmaemoji" in curKarmaSettings and nameOrEmoji == "emoji":
+			if curKarmaSettings['karmaemoji'] != False:
+				value = curKarmaSettings['karmaemoji']
 	
 	return value
 

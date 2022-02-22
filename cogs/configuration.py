@@ -19,7 +19,7 @@ from datetime import datetime, date
 import logging
 
 # sharedFunctions
-from sharedFunctions import sendErrorEmbed, getCurrentPrefix, formatMessage, getLocalKarma
+from sharedFunctions import sendErrorEmbed, getCurrentPrefix, formatMessage, getLocalKarma, createAutovoteEmbed
 
 # ----------------------------------------------------------------------------------------------
 
@@ -337,38 +337,85 @@ class Configuration(commands.Cog):
 	@commands.has_permissions(manage_guild=True)
 	async def autovote(self,ctx,*args):
 		"""Enable/disable the bot reacting to every message in a channel!"""
+		
+		channelId = str(ctx.message.channel.id)
+		
+		# Check if the channel exists.
+		possibleConfigs = [
+			{
+				"emoji": "📜",
+				"name": "Text",
+				"description": "Regular, text-only messages.",
+				"database": "text"
+			},
+			{
+				"emoji": "🖼️",
+				"name": "Images",
+				"description": "Images attached to regular messages.",
+				"database": "images"
+			},
+			{
+				"emoji": "🎥",
+				"name": "Videos",
+				"description": "Anything with them moving pictures!",
+				"database": "videos"
+			},
+			{
+				"emoji": "🗄️",
+				"name": "Files",
+				"description": "Attachments - .txt, .zip, etcetera.",
+				"database": "files"
+			},
+			{
+				"emoji": "📎",
+				"name": "Embeds",
+				"description": "Links, formatted bot messages...",
+				"database": "embeds"
+			}
+		]
 
-		prefix = await getCurrentPrefix(ctx)
-		if args:
-			if args[0] == "server":
-				# Check if the channel exists.
-				result = chan.get(Query()['server'] == ctx.message.guild.id)
-				if (result and result['serverwide'] == True):
-					await ctx.send("The Autovote feature has been disabled server-wide. This does not affect channels that already have Autovote enabled - those need to be disabled manually.\nTo enable it, use " + prefix + "autovote server again.")
-					chan.update({'serverwide': False}, where('server') == ctx.message.guild.id)
-				else:
-					await ctx.send("The Autovote feature has been enabled server-wide! To disable it, use " + prefix + "autovote server again.")
-					exists = chan.count(Query().server == ctx.message.guild.id)
-					if (exists == 0):
-						chan.insert({'server': ctx.message.guild.id, 'channels': [], 'serverwide': True})
-					else:
-						chan.update({'serverwide': True}, where('server') == ctx.message.guild.id)
+		channelConfig = chan.get(Query()['server'] == ctx.message.guild.id)
+		autovoteEmbed = await createAutovoteEmbed(channelId, possibleConfigs, channelConfig)
+		sentEmbed = await ctx.send(embed=autovoteEmbed)
+		
+		emojiArray = []
+		for config in possibleConfigs:
+			emojiArray.append(config["emoji"])
+			await sentEmbed.add_reaction(emoji=config["emoji"])
+		
+		def check(reaction, user):
+			return user == ctx.message.author and str(reaction.emoji) in emojiArray and reaction.message.channel == ctx.message.channel
+		
+		try:
+			reaction, user = await self.client.wait_for('reaction_add', timeout=60.0, check=check)
+		except asyncio.TimeoutError:
+			await sentEmbed.clear_reactions()
 		else:
-			# Check if the channel exists.
-			result = chan.get(Query()['server'] == ctx.message.guild.id)
-			if (result and ctx.message.channel.id in result['channels']):
-				await ctx.send("The Autovote feature has been disabled on **#" + ctx.message.channel.name + "** successfully.\nTo re-enable this feature, use " + prefix + "autovote on this channel again.")
-				newresult = result['channels']
-				newresult.remove(ctx.message.channel.id)
-				chan.update({'channels': newresult}, where('server') == ctx.message.guild.id)
-			else:
-				plus = discord.utils.get(ctx.message.guild.emojis, name="plus")
-				minus = discord.utils.get(ctx.message.guild.emojis, name="minus")
-				await ctx.send("The Autovote feature has been enabled on the channel **#" + ctx.message.channel.name + "**! From now on, every post in this channel will be auto-reacted to with " + str(plus) + " and " + str(minus) + ", to encourage voting.\nTo disable this feature, use " + prefix + "autovote on this channel again.")
-				exists = chan.count(Query().server == ctx.message.guild.id)
-				if (exists == 0):
-					chan.insert({'server': ctx.message.guild.id, 'channels': [], 'serverwide': False})
-				chan.update(add('channels',[ctx.message.channel.id]), where('server') == ctx.message.guild.id)
+			while True:
+				try:
+					for config in possibleConfigs:
+						if config["emoji"] == reaction.emoji:
+							if (channelConfig and channelId + "-" + config["database"] in channelConfig and channelConfig[channelId + "-" + config["database"]] == True):
+								chan.update({channelId + "-" + config["database"]: False}, where('server') == ctx.message.guild.id)
+							else:
+								exists = chan.count(Query().server == ctx.message.guild.id)
+								# If the channel doesn't exist.
+								if (exists == 0):
+									chan.insert({'server': ctx.message.guild.id})
+								chan.update({channelId + "-" + config["database"]: True}, where('server') == ctx.message.guild.id)
+					
+					# Update the old embed
+					channelConfig = chan.get(Query()['server'] == ctx.message.guild.id)
+					autovoteEmbed = await createAutovoteEmbed(channelId, possibleConfigs, channelConfig)
+					await sentEmbed.edit(embed=autovoteEmbed)
+
+					# Remove emoji
+					await reaction.remove(ctx.message.author)
+
+					reaction, user = await self.client.wait_for('reaction_add', timeout=60.0, check=check)
+				except asyncio.TimeoutError:
+					await sentEmbed.clear_reactions()
+					break
 
 	# -------------------------
 	#	CHANGE NOTIFICATIONS

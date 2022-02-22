@@ -84,7 +84,7 @@ class Management(commands.Cog):
 	#-----------------
 	#   EDIT KARMA
 	#-----------------
-	@commands.command(aliases=['editkarma', 'karmaedit'])
+	@commands.command(aliases=['editkarma', 'karmaedit', 'motherlode'])
 	async def rosebud(self,ctx,*args):
 		"""[BOT ADMIN ONLY] Add or subtract karma from an user."""
 
