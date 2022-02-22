@@ -19,7 +19,7 @@ from datetime import datetime, date
 import logging
 
 # sharedFunctions
-from sharedFunctions import getLocalKarma, printLeaderboard, createLeaderboardEmbed, getProfile, sendErrorEmbed, getCurrentPrefix
+from sharedFunctions import getLocalKarma, printLeaderboard, createLeaderboardEmbed, getProfile, sendErrorEmbed, getCurrentPrefix, getLocalKarma
 
 # ----------------------------------------------------------------------------------------------
 
@@ -128,6 +128,8 @@ class Karma(commands.Cog):
 					s += ("✨ " + str(user.name) + " - " + karmaEmoji + " " + str(value) +" **" + karmaName + "** " + rosebudemblem + "\n")
 				i = i+1
 		embed = discord.Embed(title="Server Leaderboard", colour=discord.Colour(0xa353a9), description=s)
+		karmaName = await getLocalKarma("name", ctx.message)
+		embed.set_footer(text="Looking empty? This leaderboard shows " + karmaName + " rankings now,\nso start voting!")
 		glb = await ctx.send(embed=embed)
 		
 	# ---------------------------------

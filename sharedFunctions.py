@@ -56,13 +56,18 @@ async def formatMessage(string, message):
 	# Channel Mention
 	cm = message.channel.mention
 	# Best Of Name
+	best.clear_cache()
 	base = best.get(Query().serverid == str(message.guild.id))
 	if not base:
 		await sendErrorEmbed(message.channel, 'Looks like the #best-of channel doesn\'t exist!\nHave you ran `?setup` yet? If so, try `?reattach`ing the channel.')
 		return
 	bcid = base['channelid']
 	bitem = discord.utils.get(message.guild.channels, id=bcid)
-	b = bitem.name
+	if bitem:
+		b = bitem.name
+	else:
+		await sendErrorEmbed(message.channel, 'Looks like the #best-of channel doesn\'t exist!\nHave you ran `?setup` yet? If so, try `?reattach`ing the channel.')
+		return
 	# Best Of Mention
 	bm = bitem.mention
 	# Message
@@ -84,9 +89,11 @@ async def formatMessage(string, message):
 	kn = await getLocalKarma("name", message)
 	# Karma emoji
 	ke = await getLocalKarma("emoji", message)
+	# Default emoji
+	e = "<:karma:862440157525180488>"
 
 	# PARSING
-	return string.replace('{u}', u).replace('{um}', um).replace('{c}', c).replace('{cm}', cm).replace('{b}', b).replace('{bm}', bm).replace('{m}', m).replace('{s}', s).replace('{p}', p).replace('{k}', k).replace('{gk}', gk).replace('{kn}', kn).replace('{ke}', ke).replace('\\n', '\n')
+	return string.replace('{u}', u).replace('{um}', um).replace('{c}', c).replace('{cm}', cm).replace('{b}', b).replace('{bm}', bm).replace('{m}', m).replace('{s}', s).replace('{p}', p).replace('{k}', k).replace('{gk}', gk).replace('{kn}', kn).replace('{ke}', ke).replace('{e}', e).replace('\\n', '\n')
 
 async def getFormattedMessage(message, msgtype):
 	serverid = str(message.guild.id)
@@ -483,10 +490,11 @@ async def createBestOfEmbed(message):
 
 	# --- ATTACH REPLY (IF IT EXISTS) ---
 
-	if message.reference:
-		reply = await message.channel.fetch_message(message.reference.message_id)
-		if reply and reply.content:
-			embed.add_field(name="Replying to " + reply.author.name, value=reply.content, inline=False)
+	if hasattr(message, 'reference'):
+		if message.reference:
+			reply = await message.channel.fetch_message(message.reference.message_id)
+			if reply and reply.content:
+				embed.add_field(name="Replying to " + reply.author.name, value=reply.content, inline=False)
 	
 	# --- PARSE THROUGH IMAGES/ATTACHMENTS ---
 	
@@ -644,7 +652,7 @@ async def reactionAdded(bot, payload):
 		"plus": {
 			"mode": "add",
 			"points": 1,
-			"message": "Hearted! **{u}** now has {ke} {k} **{kn}**. (+{p})",
+			"message": "Hearted! (+{p})\n**{u}** now has {ke} {k} **{kn}**. ({e} {gk})",
 			"bestOf": False,
 			"requiresCurator": False,
 			"starsAdded": 0
@@ -652,7 +660,7 @@ async def reactionAdded(bot, payload):
 		"minus": {
 			"mode": "subtract",
 			"points": -1,
-			"message": "Crushed. **{u}** now has {ke} {k} **{kn}**. (+{p})",
+			"message": "Crushed. (-{p})\n**{u}** now has {ke} {k} **{kn}**. ({e} {gk})",
 			"bestOf": False,
 			"requiresCurator": False,
 			"starsAdded": 0
@@ -660,7 +668,7 @@ async def reactionAdded(bot, payload):
 		"10": {
 			"mode": "add",
 			"points": 10,
-			"message": "Congrats, **{u}**! Your post will be forever immortalized in the **{bm}** channel. You now have {ke} {k} **{kn}**. (+{p})",
+			"message": "Congrats, **{u}**! (+{p}) Your post will be forever immortalized in the **{bm}** channel.\nYou now have {ke} {k} **{kn}**. ({e} {gk})",
 			"bestOf": True,
 			"requiresCurator": True,
 			"starsAdded": 1
@@ -668,7 +676,7 @@ async def reactionAdded(bot, payload):
 		"10repeat": {
 			"mode": "add",
 			"points": 10,
-			"message": "Congrats, **{u}**! Your post was so good it was Starred more than once. You now have {ke} {k} **{kn}**. (+{p})",
+			"message": "Congrats, **{u}**! (+{p}) Your post was so good it was Starred more than once.\nYou now have {ke} {k} **{kn}**. ({e} {gk})",
 			"bestOf": False,
 			"requiresCurator": True,
 			"starsAdded": 1

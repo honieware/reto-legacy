@@ -493,6 +493,9 @@ class Configuration(commands.Cog):
 		`{p}`: Points added or subtracted
 		`{k}`: Total karma count (local)
 		`{gk}`: Total karma count (global)
+		`{kn}`: Local karma name
+		`{ke}`: Local karma emoji
+		`{e}`: Default karma emoji
 		`\\n`: Newline (pressing RETURN/ENTER)
 		"""
 		types = ["plus", "minus", "10", "10repeat"]
