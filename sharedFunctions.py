@@ -637,7 +637,8 @@ async def reactionAdded(bot, payload):
 	emojiName = payload.emoji.name.lower()
 
 	# Check notification types
-	notificationMode = best.get(Query().serverid == serverId)
+	best.clear_cache()
+	notificationMode = best.get(Query().serverid == str(serverId))
 	if notificationMode:
 		notificationMode = notificationMode['notification']
 	else:
