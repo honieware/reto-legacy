@@ -68,9 +68,13 @@ async def formatMessage(string, message):
 	k = str(query.get(str(message.guild.id)))
 	# Total karma (global)
 	gk = str(query.get('points'))
+	# Karma name
+	kn = await getLocalKarma("name", message)
+	# Karma emoji
+	ke = await getLocalKarma("emoji", message)
 
 	# PARSING
-	return string.replace('{u}', u).replace('{um}', um).replace('{c}', c).replace('{cm}', cm).replace('{b}', b).replace('{bm}', bm).replace('{m}', m).replace('{s}', s).replace('{p}', p).replace('{k}', k).replace('{gk}', gk).replace('\\n', '\n')
+	return string.replace('{u}', u).replace('{um}', um).replace('{c}', c).replace('{cm}', cm).replace('{b}', b).replace('{bm}', bm).replace('{m}', m).replace('{s}', s).replace('{p}', p).replace('{k}', k).replace('{gk}', gk).replace('{kn}', kn).replace('{ke}', ke).replace('\\n', '\n')
 
 async def getFormattedMessage(message, msgtype):
 	serverid = str(message.guild.id)
@@ -212,12 +216,16 @@ async def getProfile(author, ctx, self):
 	embed=discord.Embed(title=author.name, color=discord.Colour.from_rgb(dominantColor[0], dominantColor[1], dominantColor[2]))
 	embed.set_thumbnail(url=author.avatar_url)
 	rank = ""
+
+	karmaName = await getLocalKarma("name", ctx.message)
+	karmaEmoji = await getLocalKarma("emoji", ctx.message)
+
 	if not isinstance(ctx.message.channel, discord.channel.DMChannel) and result:
 		rank = "✨ Rank     `" + str(localvalue) + "`\n"
 		if result.get(server):
-			embed.add_field(name=ctx.message.guild.name + " Karma", value="<:karma:862440157525180488> " + str(result.get(server)), inline=True)
+			embed.add_field(name=karmaName, value=karmaEmoji + " " + str(result.get(server)), inline=True)
 		else:
-			embed.add_field(name=ctx.message.guild.name + " Karma", value="<:karma:862440157525180488> 0", inline=True)
+			embed.add_field(name=karmaName, value=karmaEmoji + " 0", inline=True)
 	if result:
 		embed.add_field(name="Global Karma", value="<:karma:862440157525180488> " + str(result.get('points')), inline=True)
 	else:
@@ -259,7 +267,7 @@ async def printLeaderboard(page, leaderboard, self, ctx, ctxMessage, ctxChannel,
 						if args[0] == "nsfw":
 							if (values[6] == "True"):
 								typeArgs = 'nsfw'
-								lbEmbed[ceronumero] = await createLeaderboardEmbed(self, values, numero, ceronumero, ctx, ctxMessage, ctxChannel, lbEmbed, page)
+								lbEmbed[ceronumero] = await createLeaderboardEmbed(self, values, numero, ceronumero, ctx, ctxMessage, ctxChannel, lbEmbed, page, isGlobal)
 								if lbEmbed[ceronumero]:
 									embedIds[ceronumero] = lbEmbed[ceronumero].id
 								numero = numero + 1
@@ -267,7 +275,7 @@ async def printLeaderboard(page, leaderboard, self, ctx, ctxMessage, ctxChannel,
 						elif args[0] == "sfw" and isGlobal == False:
 							if (values[6] != "True" or values[6] == "None"):
 								typeArgs = 'sfw'
-								lbEmbed[ceronumero] = await createLeaderboardEmbed(self, values, numero, ceronumero, ctx, ctxMessage, ctxChannel, lbEmbed, page)
+								lbEmbed[ceronumero] = await createLeaderboardEmbed(self, values, numero, ceronumero, ctx, ctxMessage, ctxChannel, lbEmbed, page, isGlobal)
 								if lbEmbed[ceronumero]:
 									embedIds[ceronumero] = lbEmbed[ceronumero].id
 								numero = numero + 1
@@ -275,14 +283,14 @@ async def printLeaderboard(page, leaderboard, self, ctx, ctxMessage, ctxChannel,
 
 						elif args[0] == "all" and isGlobal == True:
 							typeArgs = 'all'
-							lbEmbed[ceronumero] = await createLeaderboardEmbed(self, values, numero, ceronumero, ctx, ctxMessage, ctxChannel, lbEmbed, page)
+							lbEmbed[ceronumero] = await createLeaderboardEmbed(self, values, numero, ceronumero, ctx, ctxMessage, ctxChannel, lbEmbed, page, isGlobal)
 							if lbEmbed[ceronumero]:
 								embedIds[ceronumero] = lbEmbed[ceronumero].id
 							numero = numero + 1
 							ceronumero = ceronumero + 1
 						else:
 							typeArgs = 'mention'
-							lbEmbed[ceronumero] = await createLeaderboardEmbed(self, values, numero, ceronumero, ctx, ctxMessage, ctxChannel, lbEmbed, page)
+							lbEmbed[ceronumero] = await createLeaderboardEmbed(self, values, numero, ceronumero, ctx, ctxMessage, ctxChannel, lbEmbed, page, isGlobal)
 							if lbEmbed[ceronumero]:
 								embedIds[ceronumero] = lbEmbed[ceronumero].id
 							numero = numero + 1
@@ -290,14 +298,14 @@ async def printLeaderboard(page, leaderboard, self, ctx, ctxMessage, ctxChannel,
 					else:
 						if isGlobal == False:
 							typeArgs = 'default'
-							lbEmbed[ceronumero] = await createLeaderboardEmbed(self, values, numero, ceronumero, ctx, ctxMessage, ctxChannel, lbEmbed, page)
+							lbEmbed[ceronumero] = await createLeaderboardEmbed(self, values, numero, ceronumero, ctx, ctxMessage, ctxChannel, lbEmbed, page, isGlobal)
 							if lbEmbed[ceronumero]:
 								embedIds[ceronumero] = lbEmbed[ceronumero].id
 							numero = numero + 1
 							ceronumero = ceronumero + 1
 						elif values[6] != "True" or values[6] == "None":
 							typeArgs = 'default'
-							lbEmbed[ceronumero] = await createLeaderboardEmbed(self, values, numero, ceronumero, ctx, ctxMessage, ctxChannel, lbEmbed, page)
+							lbEmbed[ceronumero] = await createLeaderboardEmbed(self, values, numero, ceronumero, ctx, ctxMessage, ctxChannel, lbEmbed, page, isGlobal)
 							if lbEmbed[ceronumero]:
 								embedIds[ceronumero] = lbEmbed[ceronumero].id
 							numero = numero + 1
@@ -320,7 +328,7 @@ async def printLeaderboard(page, leaderboard, self, ctx, ctxMessage, ctxChannel,
 		botid = self.client.user
 		await ctxMessage.remove_reaction(checkM, botid)
 
-async def createLeaderboardEmbed(self, values, numero, ceronumero, ctx, ctxMessage, ctxChannel, lbEmbed, page):
+async def createLeaderboardEmbed(self, values, numero, ceronumero, ctx, ctxMessage, ctxChannel, lbEmbed, page, isGlobal):
 	guild = ctxMessage.guild
 
 	username = self.client.get_user(str(values[2]))
@@ -387,7 +395,15 @@ async def createLeaderboardEmbed(self, values, numero, ceronumero, ctx, ctxMessa
 			emberino.add_field(name="Position", value="🥉 "+str(numero), inline=True)
 		else:
 			emberino.add_field(name="Position", value="✨ "+str(numero), inline=True)
-		emberino.add_field(name="Karma", value="<:karma:862440157525180488> " + str(values[0]), inline=True)
+		
+		if isGlobal:
+			karmaName = "Karma"
+			karmaEmoji = "<:karma:862440157525180488>"
+		else:
+			karmaName = await getLocalKarma("name", ctx.message)
+			karmaEmoji = await getLocalKarma("emoji", ctx.message)
+		
+		emberino.add_field(name=karmaName, value=karmaEmoji + " " + str(values[0]), inline=True)
 		if (values[5] != "None"): #if theres 'stars' value in post
 			emberino.add_field(name="Stars", value=":star2: "+str(values[5]), inline=True)
 		if(len(values[3]) > 0):
@@ -431,9 +447,9 @@ async def exportData(userId, ctx):
 		if table:
 			filename = table['name'] + "_" + userId + ".json"
 			filepath = "export/" + filename
-			with open(filepath, "a+") as writeJson:
+			with open(filepath, "a+", encoding="utf-8") as writeJson:
 				writeJson.write(str(table['query']))
-			with open(filepath) as readJson:
+			with open(filepath, encoding="utf-8") as readJson:
 				await ctx.message.author.send(file=discord.File(readJson, filename))
 			os.remove(filepath)
 
@@ -616,7 +632,7 @@ async def reactionAdded(bot, payload):
 		"plus": {
 			"mode": "add",
 			"points": 1,
-			"message": "Hearted! **{u}** now has <:karma:862440157525180488> {k} Karma. (+{p})",
+			"message": "Hearted! **{u}** now has {ke} {k} **{kn}*. (+{p})",
 			"bestOf": False,
 			"requiresCurator": False,
 			"starsAdded": 0
@@ -624,7 +640,7 @@ async def reactionAdded(bot, payload):
 		"minus": {
 			"mode": "subtract",
 			"points": -1,
-			"message": "Crushed. **{u}** now has <:karma:862440157525180488> {k} Karma. (+{p})",
+			"message": "Crushed. **{u}** now has {ke} {k} **{kn}**. (+{p})",
 			"bestOf": False,
 			"requiresCurator": False,
 			"starsAdded": 0
@@ -632,7 +648,7 @@ async def reactionAdded(bot, payload):
 		"10": {
 			"mode": "add",
 			"points": 10,
-			"message": "Congrats, **{u}**! Your post will be forever immortalized in the **{bm}** channel. You now have <:karma:862440157525180488> {k} Karma. (+{p})",
+			"message": "Congrats, **{u}**! Your post will be forever immortalized in the **{bm}** channel. You now have {ke} {k} **{kn}*. (+{p})",
 			"bestOf": True,
 			"requiresCurator": True,
 			"starsAdded": 1
@@ -640,7 +656,7 @@ async def reactionAdded(bot, payload):
 		"10repeat": {
 			"mode": "add",
 			"points": 10,
-			"message": "Congrats, **{u}**! Your post was so good it was Starred more than once. You now have <:karma:862440157525180488> {k} Karma. (+{p})",
+			"message": "Congrats, **{u}**! Your post was so good it was Starred more than once. You now have {ke} {k} **{kn}*. (+{p})",
 			"bestOf": False,
 			"requiresCurator": True,
 			"starsAdded": 1
@@ -760,6 +776,22 @@ async def reactionAdded(bot, payload):
 						confirmationMessage = await channel.send(formattedMessage)					
 					await asyncio.sleep(3) 
 					await confirmationMessage.delete()
+
+async def getLocalKarma (nameOrEmoji, message):	
+	curKarmaSettings = srv.get(Query().server == message.guild.id)
+	if nameOrEmoji == "name":
+		value = message.guild.name + " Karma"
+	elif nameOrEmoji == "emoji":
+		value = "<:karma:862440157525180488>"
+	
+	if "karmaname" in curKarmaSettings and nameOrEmoji == "name":
+		if curKarmaSettings['karmaname'] != False:
+			value = curKarmaSettings['karmaname']
+	if "karmaemoji" in curKarmaSettings and nameOrEmoji == "emoji":
+		if curKarmaSettings['karmaemoji'] != False:
+			value = curKarmaSettings['karmaemoji']
+	
+	return value
 
 async def reactionRemoved(bot, payload):
 	if payload.guild_id is None:

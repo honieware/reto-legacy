@@ -83,32 +83,37 @@ class Miscellaneous(commands.Cog):
 				privSettings = privSettings[0]
 			if privSettings and "mode" in privSettings and privSettings['mode'] == True:
 				emojiSwitch = "\\✔️"
-				textSwitch = "(Enabled - disable it with " + prefix + "privacy mode off)"
+				textSwitch = "(Enabled - disable it with `" + prefix + "privacy mode off`)"
 			else:
 				emojiSwitch = "\\❌"
-				textSwitch = "(Disabled - enable it with " + prefix + "privacy mode on)"
+				textSwitch = "(Disabled - enable it with `" + prefix + "privacy mode on`)"
 			embed.add_field(name=emojiSwitch + " Privacy Mode", value="Let Reto know you don't want your (reacted to) comments logged. When enabled, this will make it so you don't show up on Post Leaderboards and Global Post Leaderboards. " + textSwitch, inline=False)
 			
 			if privSettings and "storage" in privSettings and privSettings['storage'] == True:
 				emojiSwitch = "\\✔️"
-				textSwitch = "(Enabled - disable it with " + prefix + "privacy storage off)"
+				textSwitch = "(Enabled - disable it with `" + prefix + "privacy storage off`)"
 			else:
 				emojiSwitch = "\\❌"
-				textSwitch = "(Disabled - enable it with " + prefix + "privacy storage on)"
+				textSwitch = "(Disabled - enable it with `" + prefix + "privacy storage on`)"
 			embed.add_field(name=emojiSwitch + " Permanent Storage", value="Reto deletes your comment information 30 days after it's first saved, per Discord policies. If you'd like to have your comments be stored indefinitely, enable this option. " + textSwitch, inline=False)
 
 			if not isinstance(ctx.message.channel, discord.channel.DMChannel):
-				srvSettings = srv.search(Query().serverid == ctx.message.guild.id)[0]
-				if "global" in srvSettings and srvSettings['global'] == True or not "global" in srvSettings:
+				srvSettings = srv.get(Query().serverid == ctx.message.guild.id)
+				if srvSettings and ("global" in srvSettings and srvSettings['global'] == True or not "global" in srvSettings):
 					emojiSwitch = "\\✔️"
-					textSwitch = "(Enabled - Curators can disable it with " + prefix + "privacy server off)"
+					textSwitch = "(Enabled - Curators can disable it with `" + prefix + "privacy server off`)"
 				else:
 					emojiSwitch = "\\❌"
-					textSwitch = "(Disabled - Curators can enable it with " + prefix + "privacy server on)"
+					textSwitch = "(Disabled - Curators can enable it with `" + prefix + "privacy server on`)"
 				embed.add_field(name=emojiSwitch + " Server Logging", value="Setting this as disabled means the server won't show up on Global Post Leaderboards, perfect for private or confidential conversations. " + textSwitch, inline=False)
-			embed.add_field(name="\\💣 Destroy your user data", value="Ready to leave Reto, and want to leave your previous conversations, points and the like behind? Do note that this action is destructive, and will only affect you and not that of the server at large. If so, use " + prefix + "privacy data delete.", inline=True)
+			embed.add_field(name="\\📁 Export your user data", value="Want to get a look of what data Reto knows about you? Want to export your previous user data to a new instance of the bot? Export your personal data with `" + prefix + "privacy data export`!", inline=True)
+			embed.add_field(name="\\💣 Destroy your user data", value="Ready to leave Reto, and want to leave your previous conversations, points and the like behind? Do note that this action is destructive, and will only affect you and not that of the server at large. If so, use `" + prefix + "privacy data delete`.", inline=True)
+
 			await ctx.send(embed=embed)
 		elif args[0] == "mode":
+			if len(args) == 1:
+				await sendErrorEmbed(ctx.channel, "Not enough arguments!");
+				return
 			if args[1] == "on":
 				privSettings = priv.search(Query().username == ctx.message.author.id)
 				if privSettings:
@@ -122,6 +127,9 @@ class Miscellaneous(commands.Cog):
 				priv.upsert({'username': ctx.message.author.id, "mode": False}, Query().username == ctx.message.author.id)
 				await ctx.send("**Done!** From now on, Reto will start logging your posts, enabling you to use post leaderboards. You can always turn this off with *" + prefix + "privacy mode on.*")
 		elif args[0] == "storage":
+			if len(args) == 1:
+				await sendErrorEmbed(ctx.channel, "Not enough arguments!");
+				return
 			if args[1] == "on":
 				privSettings = priv.search(Query().username == ctx.message.author.id)
 				if privSettings:
@@ -135,6 +143,9 @@ class Miscellaneous(commands.Cog):
 				priv.upsert({"storage": False}, Query().username == ctx.message.author.id)
 				await ctx.send("**Done!** From now on, Reto will start deleting your posts after 30 days, as is the default. You can go back to Permanent Storage with *" + prefix + "privacy storage on.*")
 		elif args[0] == "server":
+			if len(args) == 1:
+				await sendErrorEmbed(ctx.channel, "Not enough arguments!");
+				return
 			if not isinstance(ctx.message.channel, discord.channel.DMChannel):
 				if discord.utils.get(ctx.message.author.roles, name="Curator"):
 					if args[1] == "on":

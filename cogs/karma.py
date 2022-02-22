@@ -19,7 +19,7 @@ from datetime import datetime, date
 import logging
 
 # sharedFunctions
-from sharedFunctions import printLeaderboard, createLeaderboardEmbed, getProfile, sendErrorEmbed, getCurrentPrefix
+from sharedFunctions import getLocalKarma, printLeaderboard, createLeaderboardEmbed, getProfile, sendErrorEmbed, getCurrentPrefix
 
 # ----------------------------------------------------------------------------------------------
 
@@ -74,13 +74,13 @@ class Karma(commands.Cog):
 						rosebudemote = self.client.get_emoji(862441238267297834)
 						rosebudemblem = str(rosebudemote)
 				if i==0:
-					s += ("🥇 " + str(user) + " - " + str(value) +" Karma " + rosebudemblem + "\n")
+					s += ("🥇 " + str(user) + " - <:karma:862440157525180488> " + str(value) +" **Karma** " + rosebudemblem + "\n")
 				elif i==1:
-					s += ("🥈 " + str(user) + " - " + str(value) +" Karma " + rosebudemblem + "\n")
+					s += ("🥈 " + str(user) + " - <:karma:862440157525180488> " + str(value) +" **Karma** " + rosebudemblem + "\n")
 				elif i==2:
-					s += ("🥉 " + str(user) + " - " + str(value) +" Karma " + rosebudemblem + "\n")
+					s += ("🥉 " + str(user) + " - <:karma:862440157525180488> " + str(value) +" **Karma** " + rosebudemblem + "\n")
 				else:
-					s += ("✨ " + str(user) + " - " + str(value) +" Karma " + rosebudemblem + "\n")
+					s += ("✨ " + str(user) + " - <:karma:862440157525180488> " + str(value) +" **Karma** " + rosebudemblem + "\n")
 				i = i+1
 		embed = discord.Embed(title="Global Leaderboard", colour=discord.Colour(0xa353a9), description=s)
 		glb = await ctx.send(embed=embed)
@@ -114,14 +114,18 @@ class Karma(commands.Cog):
 					if "modifiedkarma" in userData[0]:
 						rosebudemote = self.client.get_emoji(862441238267297834)
 						rosebudemblem = str(rosebudemote)
+				
+				karmaName = await getLocalKarma("name", ctx.message)
+				karmaEmoji = await getLocalKarma("emoji", ctx.message)
+
 				if i==0:
-					s += ("🥇 " + str(user) + " - " + str(value) +" Karma " + rosebudemblem + "\n")
+					s += ("🥇 " + str(user.name) + " - " + karmaEmoji + " " + str(value) +" **" + karmaName + "** " + rosebudemblem + "\n")
 				elif i==1:
-					s += ("🥈 " + str(user) + " - " + str(value) +" Karma " + rosebudemblem + "\n")
+					s += ("🥈 " + str(user.name) + " - " + karmaEmoji + " " + str(value) +" **" + karmaName + "** " + rosebudemblem + "\n")
 				elif i==2:
-					s += ("🥉 " + str(user) + " - " + str(value) +" Karma " + rosebudemblem + "\n")
+					s += ("🥉 " + str(user.name) + " - " + karmaEmoji + " " + str(value) +" **" + karmaName + "** " + rosebudemblem + "\n")
 				else:
-					s += ("✨ " + str(user) + " - " + str(value) +" Karma " + rosebudemblem + "\n")
+					s += ("✨ " + str(user.name) + " - " + karmaEmoji + " " + str(value) +" **" + karmaName + "** " + rosebudemblem + "\n")
 				i = i+1
 		embed = discord.Embed(title="Server Leaderboard", colour=discord.Colour(0xa353a9), description=s)
 		glb = await ctx.send(embed=embed)

@@ -19,7 +19,7 @@ from datetime import datetime, date
 import logging
 
 # sharedFunctions
-from sharedFunctions import sendErrorEmbed, getCurrentPrefix, formatMessage
+from sharedFunctions import sendErrorEmbed, getCurrentPrefix, formatMessage, getLocalKarma
 
 # ----------------------------------------------------------------------------------------------
 
@@ -143,7 +143,7 @@ class Configuration(commands.Cog):
 	#		MANAGE EMOJIS
 	# -------------------------
 				
-	@commands.command(aliases=['reto', 'config', 'cfg', 'emojis', 'settings'], description='Used by server admins to manage their emojis. ?emoji edit to change the look of a heart/crush/10 points, ?emoji default to restore all emojis, ?emoji best-of to change the name of #best-of. REQUIRED ROLES: Manage messages')
+	@commands.command(aliases=['reto', 'config', 'cfg', 'emojis', 'settings'], description='Used by server admins to manage their emojis. ?emoji edit to change the look of a heart/crush/10 points, ?emoji default to restore all emojis. REQUIRED ROLES: Manage messages')
 	@commands.has_permissions(manage_guild=True)
 	async def emoji(self, ctx, *args):
 		"""Used to manage bot emojis. REQUIRED ROLES: Manage messages"""
@@ -152,14 +152,7 @@ class Configuration(commands.Cog):
 		path = os.path.join(script_dir, rel_path)
 		prefix = await getCurrentPrefix(ctx)
 		if not args:
-			await ctx.send("Please provide an argument!\n**" + prefix + "emoji edit** *name_of_emoji* - Lets you edit any of the three default emojis (10/plus/minus). Image required.\n**" + prefix + "emoji default** - Restores the custom emoji (10/plus/minus) to their original state.\n**" + prefix + "emoji best-of** - Allows you to rename the Best Of channel for personalization!")
-		elif args[0] == "best-of":
-			if not args[1]:
-				await sendErrorEmbed(ctx, "No name for the #best-of channel was provided. Usage: " + prefix + "emoji best-of Channel-For-Cool-Posts")
-			else:
-				server = str(ctx.message.guild.id)
-				best.upsert({'serverid': server, 'name': args[1]}, Query().serverid == server)
-				await ctx.send("The best-of channel hath now been renamed to " + args[1] + "!")
+			await ctx.send("Please provide an argument!\n**" + prefix + "emoji edit** *name_of_emoji* - Lets you edit any of the three default emojis (10/plus/minus). Image required.\n**" + prefix + "emoji default** - Restores the custom emoji (10/plus/minus) to their original state.")
 		elif args[0] == "edit":
 			if len(args) != 2:
 				await sendErrorEmbed(ctx, "No emoji name was provided. Valid emoji names: 10/plus/minus")
@@ -265,7 +258,7 @@ class Configuration(commands.Cog):
 			except:
 				await sendErrorEmbed(ctx, "An error has occurred while restoring the emojis. Check the bot's permissions and that there's space for three more emojis and try again!")
 		else:
-			await ctx.send("Invalid argument!\n**" + prefix + "emoji edit** *name_of_emoji* - Lets you edit any of the three default emojis (10/plus/minus). Image required.\n**" + prefix + "emoji default** - Restores the custom emoji (10/plus/minus) to their original state.\n**" + prefix + "emoji best-of** - Allows you to rename the Best Of channel for personalization!")
+			await ctx.send("Invalid argument!\n**" + prefix + "emoji edit** *name_of_emoji* - Lets you edit any of the three default emojis (10/plus/minus). Image required.\n**" + prefix + "emoji default** - Restores the custom emoji (10/plus/minus) to their original state.")
 
 	# -------------------------
 	#	SET UP NAME MODIFYING
@@ -311,6 +304,30 @@ class Configuration(commands.Cog):
 		else:		 
 			await ctx.send("Set up your prefix by writing in `" + prefix + "prefix *symbol*`. If you've messed up, you can restore it to default by writing `" + prefix + "prefix default`.\n_(Bot prompts will accomodate to this new prefix, except for the command descriptions on " + prefix + "help.)._")
 
+	# -------------------------
+	#	 CHANGE LOCAL KARMA
+	# -------------------------
+
+	@commands.command(description="Change the name and emoji of your Server's Karma with ?localkarma \"*name*\" *emoji*, or go back to safety with ?localkarma default.")
+	@commands.has_permissions(manage_guild=True)
+	async def localkarma(self,ctx,*args):
+		"""Edit the name and emoji of your Local Karma!"""
+
+		prefix = await getCurrentPrefix(ctx)
+		if args:
+			if args[0] == "default":
+				srv.upsert({'server': ctx.message.guild.id, 'karmaname': False, 'karmaemoji': False}, Query().server == ctx.message.guild.id)
+				await ctx.send("Your Local Karma has been restored to its default state.")
+			else:
+				if len(args) == 2:
+					srv.upsert({'server': ctx.message.guild.id, 'karmaname': args[0], 'karmaemoji': args[1]}, Query().server == ctx.message.guild.id)
+					await ctx.send("Your Local Karma has been updated!\n**Name:** " + args[0] + "\n**Emoji:** " + args[1])
+				else:
+					await sendErrorEmbed(ctx, "You forgot to set an emoji as the second argument!")
+		else:
+			karmaName = await getLocalKarma("name", ctx.message)
+			karmaEmoji = await getLocalKarma("emoji", ctx.message)
+			await ctx.send("Set up your Local Karma by writing in `" + prefix + "localkarma *name* *emoji*`. If you've messed up, you can restore it to default by writing `" + prefix + "localkarma default`.\n_(Your current Karma settings are " + karmaEmoji + " **" + karmaName + "**)._")
 
 	# -------------------------
 	#	 ENABLE AUTO-VOTES
