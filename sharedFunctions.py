@@ -58,7 +58,7 @@ async def formatMessage(string, message):
 	# Server
 	s = message.guild.name
 	# Points added/subtracted
-	if message == "10":
+	if message == "10" or message == "10repeat":
 		p = "10"
 	else:
 		p = "1"
@@ -345,9 +345,9 @@ async def createLeaderboardEmbed(self, values, numero, ceronumero, ctx, ctxMessa
 		
 		# the user may not have a profile pic!
 		if (foto):
-			emberino.set_author(name=autor, icon_url=foto)
+			emberino.set_author(name=autor.name, icon_url=foto)
 		else:
-			emberino.set_author(name=autor)
+			emberino.set_author(name=autor.name)
 
 		# the server may not have an icon!
 		if (guild.icon_url):
@@ -439,7 +439,7 @@ async def exportData(userId, ctx):
 
 async def createBestOfEmbed(message):
 	# Decipher the color of the pre-existing embed, if there's any
-	colour = discord.Colour.default()
+	colour = discord.Color.from_rgb(32, 34, 37)
 
 	if message.embeds:
 		previousEmbed = message.embeds[0].to_dict()
@@ -453,6 +453,13 @@ async def createBestOfEmbed(message):
 	messageUrl = "https://discordapp.com/channels/" + str(message.guild.id) + "/" + str(message.channel.id) + "/" + str(message.id)
 	embed.set_author(name=message.author.name, url=messageUrl, icon_url=message.author.avatar_url)
 
+	# --- ATTACH REPLY (IF IT EXISTS) ---
+
+	if message.reference:
+		reply = await message.channel.fetch_message(message.reference.message_id)
+		if reply and reply.content:
+			embed.add_field(name="Replying to " + reply.author.name, value=reply.content, inline=False)
+	
 	# --- PARSE THROUGH IMAGES/ATTACHMENTS ---
 	
 	if(len(message.attachments) > 0): #?
@@ -473,10 +480,10 @@ async def createBestOfEmbed(message):
 				if attachmentUrl[-len(e)-1:]==f'.{e}':
 					postIncludes = "an audio file"
 			# Send a footer warning!
-			attachmentUrl.set_footer(text="This post includes " + postIncludes + "! Click on the username to see the original.")
+			attachmentUrl.set_footer(text="This post includes " + postIncludes + "! Click on the link above to see the attachment.")
 		# If there's more than one image, set a warning on the footer!
 		if(len(message.attachments) > 1 and validAttachment == True):
-			attachmentUrl.set_footer(text="This post includes more than one image! Click on the username to see the original.")
+			attachmentUrl.set_footer(text="This post includes more than one image! Click on the link above to see the rest.")
 
 	# --- PARSE THROUGH EMBEDS ---
 	
@@ -520,6 +527,10 @@ async def createBestOfEmbed(message):
 			if "fields" in previousEmbed:
 				for field in previousEmbed["fields"]:
 					embed.add_field(name=field['name'], value=field['value'], inline=False)
+
+	# --- ADD EMBED FOR JUMPING TO MESSAGE ---
+	
+	embed.add_field(name="** **", value="[🔗 **Jump to message**](" + messageUrl + ")", inline=False)
 	
 	return embed
 
@@ -629,7 +640,7 @@ async def reactionAdded(bot, payload):
 		"10repeat": {
 			"mode": "add",
 			"points": 10,
-			"message": "Congrats, **{u}**! Your post was so good it was Hearted more than once. You now have <:karma:862440157525180488> {k} Karma. (+{p})",
+			"message": "Congrats, **{u}**! Your post was so good it was Starred more than once. You now have <:karma:862440157525180488> {k} Karma. (+{p})",
 			"bestOf": False,
 			"requiresCurator": True,
 			"starsAdded": 1
@@ -644,7 +655,10 @@ async def reactionAdded(bot, payload):
 				commentExists = post.count(Query().msgid == str(messageId))
 				
 				# Get the values from the types dict.!
-				if commentExists and emojiName == "10":
+				starExists = post.get(Query().msgid == str(messageId))
+				starExists = starExists['stars'] if starExists else False
+
+				if starExists and emojiName == "10":
 					emojiName = "10repeat"
 				
 				typeVariables = types[emojiName]
