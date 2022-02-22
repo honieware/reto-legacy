@@ -1,5 +1,5 @@
 # Import global variables and databases.
-from definitions import srv, priv
+from definitions import srv, priv, support, botname
 
 # Imports, database definitions and all that kerfuffle.
 
@@ -69,6 +69,12 @@ class Miscellaneous(commands.Cog):
 	async def error(self, ctx):
 		"""Throws... an error. For testing purposes."""
 		await sendErrorEmbed(ctx.message.channel,"I'm not sure why you're here, truth to be told! Nothing has necessarily gone wrong, you just decided to throw an error, for some reason. Er, good job?")
+
+	@commands.command(description='Get a link to Discord\'s support server!')
+	async def support(self, ctx):
+		"""Sends a link to the Discord's support server!"""
+		embed=discord.Embed(title="Need a hand?", description="[Join the Discord support server](" + support + ") to ask for help, report bugs, request features and get news and updates on " + botname + "!", color=0x8bd878)
+		await ctx.send(embed=embed)
 
 	@commands.command(aliases=['data'], description="Manage the data Reto holds about you - limit what it can do with it, erase it entirely, and more!")
 	async def privacy(self,ctx,*args):

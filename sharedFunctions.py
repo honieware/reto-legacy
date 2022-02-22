@@ -18,6 +18,7 @@ from datetime import datetime, date
 import logging
 import ast
 from colorthief import ColorThief
+from colorama import init, Fore, Back, Style
 
 # ----------------------------------------------------------------------------------------------
 
@@ -32,6 +33,8 @@ async def createAutovoteEmbed(channelId, possibleConfigs, channelConfig):
 	embed.set_footer(text="The reactions below will dissapear after a minute of inactivity.")
 	return embed
 
+async def getTimestamp():
+	return Fore.WHITE + Style.DIM + '[{:%Y-%m-%d %H:%M:%S}]'.format(datetime.now()) + Style.RESET_ALL
 
 async def getCurrentPrefix(ctx):
 	customprefix.clear_cache()
@@ -655,7 +658,10 @@ async def reactionAdded(bot, payload):
 			"message": "Hearted! (+{p})\n**{u}** now has {ke} {k} **{kn}**. ({e} {gk})",
 			"bestOf": False,
 			"requiresCurator": False,
-			"starsAdded": 0
+			"starsAdded": 0,
+			"unicodeEmoji": "💖",
+			"foreColor": Fore.RED,
+			"justDid": "Hearted"
 		},
 		"minus": {
 			"mode": "subtract",
@@ -663,7 +669,10 @@ async def reactionAdded(bot, payload):
 			"message": "Crushed. (-{p})\n**{u}** now has {ke} {k} **{kn}**. ({e} {gk})",
 			"bestOf": False,
 			"requiresCurator": False,
-			"starsAdded": 0
+			"starsAdded": 0,
+			"unicodeEmoji": "💔",
+			"foreColor": Fore.BLUE,
+			"justDid": "Crushed"
 		},
 		"10": {
 			"mode": "add",
@@ -671,7 +680,10 @@ async def reactionAdded(bot, payload):
 			"message": "Congrats, **{u}**! (+{p}) Your post will be forever immortalized in the **{bm}** channel.\nYou now have {ke} {k} **{kn}**. ({e} {gk})",
 			"bestOf": True,
 			"requiresCurator": True,
-			"starsAdded": 1
+			"starsAdded": 1,
+			"unicodeEmoji": "⭐",
+			"foreColor": Fore.YELLOW,
+			"justDid": "Starred"
 		},
 		"10repeat": {
 			"mode": "add",
@@ -679,7 +691,10 @@ async def reactionAdded(bot, payload):
 			"message": "Congrats, **{u}**! (+{p}) Your post was so good it was Starred more than once.\nYou now have {ke} {k} **{kn}**. ({e} {gk})",
 			"bestOf": False,
 			"requiresCurator": True,
-			"starsAdded": 1
+			"starsAdded": 1,
+			"unicodeEmoji": "🌟",
+			"foreColor": Fore.GREEN,
+			"justDid": "Starred (multiple times)"
 		}
 	}
 
@@ -698,6 +713,8 @@ async def reactionAdded(bot, payload):
 					emojiName = "10repeat"
 				
 				typeVariables = types[emojiName]
+				timestamp = await getTimestamp()
+				print(timestamp + " " + typeVariables['unicodeEmoji'] + " " + typeVariables['foreColor'] + user.name + Style.RESET_ALL + " just " + typeVariables['justDid'] + " " + typeVariables['foreColor'] + message.author.name + Style.RESET_ALL + "'s message")
 
 				# If the role requires Curator and the user doesn't have it, boot 'em out
 				if discord.utils.get(member.roles, name="Curator") is None and typeVariables['requiresCurator']:
@@ -845,6 +862,9 @@ async def reactionRemoved(bot, payload):
 			channel       = message.channel
 			bestOfId      = best.get(Query().serverid == server)
 			bestOfChannel = await bot.fetch_channel(bestOfId["channelid"])
+
+			timestamp = await getTimestamp()
+			print(timestamp + " 💔 " + Fore.BLUE + user.name + Style.RESET_ALL + " just unreacted (" + payload.emoji.name + ") " + Fore.BLUE + message.author.name + Style.RESET_ALL + "'s message")
 
 			removable = None
 			if payload.emoji.name == '10':

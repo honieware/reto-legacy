@@ -439,6 +439,7 @@ class Configuration(commands.Cog):
 		notifmode = best.search(Query().serverid == server)
 		notifmode = notifmode[0]['notification']
 		notifstr = str(notifmode)
+		print(best.search(Query().serverid == server))
 		if not args:
 			await ctx.send("You're currently using **" + notifstr.capitalize() + "** Mode.\n💠 *" + prefix + "notification message* tells " + botname + " to send a message when someone Stars/Hearts/Crushes a comment. Great for small servers, and shows the Karma that the user currently has.\n💠 *" + prefix + "notification reaction* sends a reaction when someone Stars/Hearts/Crushes a comment. Great if you don't want to have excess notifications on Mobile, but it doesn't show the Karma the user has.\n💠 *" + prefix + "notification disabled* deactivates notifications on this server - no messages or reactions when someone Stars/Hearts/Crushes a comment. This isn't recommended unless it's being used in a very heavy server, as it leaves zero feedback that their vote has been counted.")
 		elif args[0] == "reaction" or args[0] == "reactions":
@@ -452,6 +453,8 @@ class Configuration(commands.Cog):
 			await ctx.send("*Got it!* The server will not send confirmations.\nNext time someone reacts to a comment, it will be counted, but there'll be no confirmation of it.")
 		else:
 			await sendErrorEmbed(ctx, "That's not a valid option!")
+		# best.clear_cache()
+		print(best.search(Query().serverid == server))
 		
 	# -------------------------
 	#	REATTACH BEST-OF

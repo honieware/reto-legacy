@@ -50,9 +50,9 @@ class Karma(commands.Cog):
 	#	    ?GLOBALLEADERBOARD
 	# -------------------------------
 	
-	@commands.command(aliases=['glb'], description="Check the top 10 users of Discord! May take a while to load.\nYour username/score isn't showing up on the leaderboards? Update 1.2.1 made it so servers you're in and your score are joined together. This will refresh the next time someone hearts/crushs/stars one of your comments.")
+	@commands.command(aliases=['glb'], description="Check the top 10 users of Discord! \nYour username/score isn't showing up on the leaderboards? Update 1.2.1 made it so servers you're in and your score are joined together. This will refresh the next time someone hearts/crushs/stars one of your comments.")
 	async def globalleaderboard(self, ctx, *args):
-		"""Check the top karma holders on all Discord!"""
+		"""Check the top Global Karma holders on all Discord!"""
 		db.clear_cache()
 		result = db.all() # "Result" is just the entire database.
 		leaderboard = {} # Prepares an empty dictionary.

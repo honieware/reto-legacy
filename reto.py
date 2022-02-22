@@ -24,7 +24,7 @@ from colorama import init, Fore, Back, Style
 from yaspin import yaspin
 
 # sharedFunctions
-from sharedFunctions import printLeaderboard, createLeaderboardEmbed, getProfile, sendErrorEmbed, reactionAdded, reactionRemoved
+from sharedFunctions import sendErrorEmbed, reactionAdded, reactionRemoved, getTimestamp
 
 # ----------------------------------------------------------------------------------------------
 
@@ -82,11 +82,13 @@ async def on_raw_reaction_remove(payload):
 
 @bot.event
 async def on_command(ctx):
-	print("⏳ " + Fore.YELLOW + ctx.message.author.name + Style.RESET_ALL + " invoked " + Fore.YELLOW + prefix + ctx.command.name)
+	timestamp = await getTimestamp()
+	print(timestamp + " ⏳ " + Fore.YELLOW + ctx.message.author.name + Style.RESET_ALL + " invoked " + Fore.YELLOW + prefix + ctx.command.name)
 
 @bot.event
 async def on_command_completion(ctx):
-	print("✅ " + Fore.GREEN + ctx.message.author.name + Style.RESET_ALL + " invoked " + Fore.GREEN + prefix + ctx.command.name)
+	timestamp = await getTimestamp()
+	print(timestamp + " ✅ " + Fore.GREEN + ctx.message.author.name + Style.RESET_ALL + " invoked " + Fore.GREEN + prefix + ctx.command.name)
 
 for file in os.listdir("./cogs"):
 	if file.endswith(".py"):
@@ -116,7 +118,8 @@ async def on_command_error(ctx, error):
 	elif isinstance(error, discord.ext.commands.errors.MissingPermissions):
 		await sendErrorEmbed(ctx, "You're missing the required permissions to run this command!")
 	else:
-		print("❌ Ignoring exception in command {}:".format(ctx.command), file=sys.stderr)
+		timestamp = await getTimestamp()
+		print(timestamp + " ❌ " + Fore.RED + "Ignoring exception in command " + Style.RESET_ALL + "{}:".format(ctx.command), file=sys.stderr)
 		traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 		nameTraceback = str(error).capitalize()
 		formattedTraceback = "\n".join(traceback.format_exception(type(error), error, error.__traceback__))
@@ -125,10 +128,12 @@ async def on_command_error(ctx, error):
 
 @bot.event
 async def on_ready():
-	# Windows
-	os.system('cls')
-	# Linux
-	os.system('clear')
+	if os.name == 'nt':
+		# Windows
+		os.system('cls')
+	else:
+		# Linux
+		os.system('clear')
 
 	# Stop spinner
 	spinner.stop()
