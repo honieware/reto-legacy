@@ -644,7 +644,7 @@ async def reactionAdded(bot, payload):
 		"plus": {
 			"mode": "add",
 			"points": 1,
-			"message": "Hearted! **{u}** now has {ke} {k} **{kn}*. (+{p})",
+			"message": "Hearted! **{u}** now has {ke} {k} **{kn}**. (+{p})",
 			"bestOf": False,
 			"requiresCurator": False,
 			"starsAdded": 0
