@@ -116,7 +116,11 @@ async def on_command_error(ctx, error):
 		if ctx.command.qualified_name == 'tag list':
 			await sendErrorEmbed(ctx, "Can't find that member, for whatever reason. Please try again.")
 	elif isinstance(error, discord.ext.commands.errors.MissingPermissions):
+		print(timestamp + " ❌ " + Fore.RED + "Required permissions missing" + Style.RESET_ALL + "from user: " + ctx.command.name)
 		await sendErrorEmbed(ctx, "You're missing the required permissions to run this command!")
+	elif isinstance(error, discord.errors.Forbidden):
+		print(timestamp + " ❌ " + Fore.RED + "Required permissions missing" + Style.RESET_ALL + " from Reto: " + ctx.command.name)
+		#await sendErrorEmbed(ctx, "I'm missing the required permissions to run this command!")
 	else:
 		timestamp = await getTimestamp()
 		print(timestamp + " ❌ " + Fore.RED + "Ignoring exception in command " + Style.RESET_ALL + "{}:".format(ctx.command), file=sys.stderr)

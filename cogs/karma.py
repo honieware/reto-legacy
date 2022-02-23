@@ -39,12 +39,19 @@ class Karma(commands.Cog):
 		"""Check your (or others') profile, with info about your karma total and more!"""
 
 		prefix = await getCurrentPrefix(ctx)
+
+		loadingEmoji = self.client.get_emoji(660250625107296256)
+		await ctx.message.add_reaction(loadingEmoji)
+
 		if not args:
 			await getProfile(ctx.message.author, ctx, self)
 		elif not ctx.message.mentions:
 			await sendErrorEmbed(ctx, "Invalid command! Use **" + prefix + "profile** to find out about your score, or @mention another user to get their score.")
 		else:
 			await getProfile(ctx.message.mentions[0], ctx, self)
+		
+		botid = self.client.user
+		await ctx.message.remove_reaction(loadingEmoji, botid)
 
 	# -------------------------------
 	#	    ?GLOBALLEADERBOARD
@@ -89,7 +96,7 @@ class Karma(commands.Cog):
 	#	    ?LEADERBOARD
 	# --------------------------
 	
-	@commands.command(aliases=['lb', 'llb'], description="Check the top 10 users of your server! May take a while to load.\nYour username/score isn't showing up on the leaderboards? Update 1.2.1 made it so servers you're in and your score are joined together. This will refresh the next time someone hearts/crushs/stars one of your comments.")
+	@commands.command(aliases=['lb', 'llb'], description="Check the top 10 users of your server! May take a while to load.\nYou can also use ?lb global to rank server users' Global Karma totals.")
 	async def leaderboard(self, ctx, *args):
 		"""Check this server's users with the most karma."""
 		db.clear_cache()
@@ -98,12 +105,15 @@ class Karma(commands.Cog):
 		result = db.search(User.servers.all([server]))
 		leaderboard = {} # Prepares an empty dictionary.
 		for x in result: # For each entry in the database:
-			leaderboard[x.get("username")] = int(x.get(str(server))) # ...save the user's ID and its amount of points in a new Python database.
+			if len(args) == 0 or args[0] != "global":
+				leaderboard[x.get("username")] = int(x.get(str(server))) # ...save the user's ID and its amount of points in a new Python database.
+			else:
+				leaderboard[x.get("username")] = int(x.get("points"))
 		leaderboard = sorted(leaderboard.items(), key = lambda x : x[1], reverse=True) # Sort this database by amount of points.
 		s = ""
 		i = 0
 		for key, value in leaderboard: # For each value in the new, sorted DB:
-			if i != 10:
+			if i != 25:
 				user = self.client.get_user(key)
 				if not user:
 					user = await self.client.fetch_user(key)
@@ -129,7 +139,8 @@ class Karma(commands.Cog):
 				i = i+1
 		embed = discord.Embed(title="Server Leaderboard", colour=discord.Colour(0xa353a9), description=s)
 		karmaName = await getLocalKarma("name", ctx.message)
-		embed.set_footer(text="Looking empty? This leaderboard shows " + karmaName + " rankings now,\nso start voting!")
+		if len(args) == 0 or args[0] != "global":
+			embed.set_footer(text="Looking empty? This leaderboard shows " + karmaName + " rankings now, so start voting!\nYou can also use ?lb global to rank server users' Global Karma instead.")
 		glb = await ctx.send(embed=embed)
 		
 	# ---------------------------------

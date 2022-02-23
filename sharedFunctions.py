@@ -169,9 +169,9 @@ async def getProfile(author, ctx, self):
 		elif leadervalue <= 10:
 			leaderemblem = "🏅 "
 		else:
-			leaderemblem = " "
+			leaderemblem = ""
 	else:
-		leaderemblem = " "
+		leaderemblem = ""
 
 	#
 	# CHECK IF CURATOR
@@ -257,7 +257,8 @@ async def getProfile(author, ctx, self):
 		if plusEmoji == None:
 			plusEmoji = "❤️"
 		starEmoji = discord.utils.get(ctx.guild.emojis, name="10")
-		embed.add_field(name="Badges", value=leaderemblem + curatoremblem + botemblem + rosebudemblem, inline=False)
+		if not (not leaderemblem and not curatoremblem and not botemblem and not rosebudemblem):
+			embed.add_field(name="Badges", value=leaderemblem + curatoremblem + botemblem + rosebudemblem + "** **", inline=False)
 		embed.add_field(name="Stats", value=rank + "🌐 Global Rank  `" + str(leadervalue) + "`\n" + str(plusEmoji) + " Times reacted `" + str(len(sentpoints)) + "`", inline=False)
 		# + "`\n" + str(starEmoji) + " Stars received `" + str(starsrec) + "`"
 	await ctx.send(embed=embed)
