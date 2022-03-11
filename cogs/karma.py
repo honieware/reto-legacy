@@ -99,19 +99,25 @@ class Karma(commands.Cog):
 	@commands.command(aliases=['lb', 'llb'], description="Check the top 10 users of your server! May take a while to load.\nYou can also use ?lb global to rank server users' Global Karma totals.")
 	async def leaderboard(self, ctx, *args):
 		"""Check this server's users with the most karma."""
+
 		db.clear_cache()
 		User = Query()
 		server = ctx.message.guild.id
-		result = db.search(User.servers.all([server]))
 		leaderboard = {} # Prepares an empty dictionary.
-		for x in result: # For each entry in the database:
+
+		allUsers = db.search(User.servers.all([server]))
+		for user in allUsers:
 			if len(args) == 0 or args[0] != "global":
-				leaderboard[x.get("username")] = int(x.get(str(server))) # ...save the user's ID and its amount of points in a new Python database.
+				leaderboard[user.get("username")] = int(user.get(str(server))) # ...save the user's ID and its amount of points in a new Python database.
 			else:
-				leaderboard[x.get("username")] = int(x.get("points"))
+				leaderboard[user.get("username")] = int(user.get("points"))
+		
 		leaderboard = sorted(leaderboard.items(), key = lambda x : x[1], reverse=True) # Sort this database by amount of points.
 		s = ""
 		i = 0
+
+		print(leaderboard)
+
 		for key, value in leaderboard: # For each value in the new, sorted DB:
 			if i != 25:
 				user = self.client.get_user(key)
@@ -125,8 +131,12 @@ class Karma(commands.Cog):
 						rosebudemote = self.client.get_emoji(862441238267297834)
 						rosebudemblem = str(rosebudemote)
 				
-				karmaName = await getLocalKarma("name", ctx.message)
-				karmaEmoji = await getLocalKarma("emoji", ctx.message)
+				if len(args) == 0 or args[0] != "global":
+					karmaName = await getLocalKarma("name", ctx.message)
+					karmaEmoji = await getLocalKarma("emoji", ctx.message)
+				else:
+					karmaName = "Karma"
+					karmaEmoji = "<:karma:862440157525180488>"
 
 				if i==0:
 					s += ("🥇 " + str(user.name) + " - " + karmaEmoji + " " + str(value) +" **" + karmaName + "** " + rosebudemblem + "\n")

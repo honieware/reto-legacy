@@ -58,21 +58,27 @@ async def formatMessage(string, message):
 	c = message.channel.name
 	# Channel Mention
 	cm = message.channel.mention
+
 	# Best Of Name
 	best.clear_cache()
 	base = best.get(Query().serverid == str(message.guild.id))
 	if not base:
+		print("No best of found for server " + str(message.guild.id))
 		await sendErrorEmbed(message.channel, 'Looks like the #best-of channel doesn\'t exist!\nHave you ran `?setup` yet? If so, try `?reattach`ing the channel.')
 		return
+	
 	bcid = base['channelid']
 	bitem = discord.utils.get(message.guild.channels, id=bcid)
 	if bitem:
 		b = bitem.name
+		# Best Of Mention
+		bm = bitem.mention
 	else:
-		await sendErrorEmbed(message.channel, 'Looks like the #best-of channel doesn\'t exist!\nHave you ran `?setup` yet? If so, try `?reattach`ing the channel.')
-		return
-	# Best Of Mention
-	bm = bitem.mention
+		b = "#best-of"
+		# Best Of Mention
+		bm = "´#best-of´"
+	
+
 	# Message
 	m = message.content
 	# Server
@@ -95,8 +101,23 @@ async def formatMessage(string, message):
 	# Default emoji
 	e = "<:karma:862440157525180488>"
 
+	# Plus emoji
+	pe = str(discord.utils.get(message.guild.emojis, name="plus"))
+	if pe == None:
+		pe = "💖"
+	# Minus emoji
+	me = str(discord.utils.get(message.guild.emojis, name="minus"))
+	if me == None:
+		me = "💔"
+	# Ten/Star emoji
+	#se = str(discord.utils.get(message.guild.emojis, name="10"))
+	#if se == None:
+	#	se = "⭐"
+	# Unimplemented - Reto can't access the 10 emoji without role Curator,
+	# and it's messy to update the allowed Roles for pre-existing emojis.
+	
 	# PARSING
-	return string.replace('{u}', u).replace('{um}', um).replace('{c}', c).replace('{cm}', cm).replace('{b}', b).replace('{bm}', bm).replace('{m}', m).replace('{s}', s).replace('{p}', p).replace('{k}', k).replace('{gk}', gk).replace('{kn}', kn).replace('{ke}', ke).replace('{e}', e).replace('\\n', '\n')
+	return string.replace('{u}', u).replace('{um}', um).replace('{c}', c).replace('{cm}', cm).replace('{b}', b).replace('{bm}', bm).replace('{m}', m).replace('{s}', s).replace('{p}', p).replace('{k}', k).replace('{gk}', gk).replace('{kn}', kn).replace('{ke}', ke).replace('{e}', e).replace('{pe}', pe).replace('{me}', me).replace('\\n', '\n')
 
 async def getFormattedMessage(message, msgtype):
 	serverid = str(message.guild.id)
@@ -141,15 +162,22 @@ async def getProfile(author, ctx, self):
 	#
 
 	if not isinstance(ctx.message.channel, discord.channel.DMChannel):
-		llbsult = db.search(Query().servers.all([server])) # doesnt work
+		
+		allUsers = db.search(Query().servers.all([server]))
 		lleaderboard = {} # Prepares an empty dictionary.
-		for x in llbsult: # For each entry in the database:
-			lleaderboard[x.get("username")] = int(x.get("points")) # ...save the user's ID and its amount of points in a new Python database.
+		for user in allUsers: # For each entry in the database:
+			if user.get(server) != None:
+				print(user)
+				print(user.get("username"))
+				print(str(ctx.message.guild.id))
+				lleaderboard[user.get("username")] = int(user.get(server))
 		lleaderboard = sorted(lleaderboard.items(), key = lambda x : x[1], reverse=True) # Sort this database by amount of points.
-		s = ""
+		print(lleaderboard)
 		localvalue = 1
 
 		for key, value in lleaderboard: # For each value in the new, sorted DB:
+			print("key: " + key)
+			print("value: " + searchvalor)
 			if key == searchvalor:
 				break
 			else:
@@ -570,7 +598,7 @@ async def createBestOfEmbed(message):
 
 	# --- ADD EMBED FOR JUMPING TO MESSAGE ---
 	
-	embed.add_field(name="** **", value="[🔗 **Jump to message**](" + messageUrl + ")", inline=False)
+	embed.add_field(name="** **", value="[🔗 Jump to message](" + messageUrl + ")", inline=False)
 	
 	return embed
 
@@ -657,7 +685,7 @@ async def reactionAdded(bot, payload):
 		"plus": {
 			"mode": "add",
 			"points": 1,
-			"message": "Hearted! (+{p})\n**{u}** now has {ke} {k} **{kn}**. ({e} {gk})",
+			"message": "{pe} Hearted! `(+{p})`\n**{u}** now has {ke} {k} **{kn}**. ({e} {gk})",
 			"bestOf": False,
 			"requiresCurator": False,
 			"starsAdded": 0,
@@ -668,7 +696,7 @@ async def reactionAdded(bot, payload):
 		"minus": {
 			"mode": "subtract",
 			"points": -1,
-			"message": "Crushed. (-{p})\n**{u}** now has {ke} {k} **{kn}**. ({e} {gk})",
+			"message": "{me} Crushed. `(-{p})`\n**{u}** now has {ke} {k} **{kn}**. ({e} {gk})",
 			"bestOf": False,
 			"requiresCurator": False,
 			"starsAdded": 0,
@@ -679,7 +707,7 @@ async def reactionAdded(bot, payload):
 		"10": {
 			"mode": "add",
 			"points": 10,
-			"message": "Congrats, **{u}**! (+{p}) Your post will be forever immortalized in the **{bm}** channel.\nYou now have {ke} {k} **{kn}**. ({e} {gk})",
+			"message": "Congrats, **{u}**! `(+{p})` Your post will be forever immortalized in the **{bm}** channel.\nYou now have {ke} {k} **{kn}**. ({e} {gk})",
 			"bestOf": True,
 			"requiresCurator": True,
 			"starsAdded": 1,
@@ -690,7 +718,7 @@ async def reactionAdded(bot, payload):
 		"10repeat": {
 			"mode": "add",
 			"points": 10,
-			"message": "Congrats, **{u}**! (+{p}) Your post was so good it was Starred more than once.\nYou now have {ke} {k} **{kn}**. ({e} {gk})",
+			"message": "Congrats, **{u}**! `(+{p})` Your post was so good it was Starred more than once.\nYou now have {ke} {k} **{kn}**. ({e} {gk})",
 			"bestOf": False,
 			"requiresCurator": True,
 			"starsAdded": 1,
@@ -751,7 +779,7 @@ async def reactionAdded(bot, payload):
 				bestOfSentEmbed = False
 				if typeVariables['bestOf']:
 					bestOfEmbed = await createBestOfEmbed(message)
-					if not commentExists:
+					if not starExists:
 						bestOfSettings = best.get(Query().serverid == str(serverId))
 						if 'channelid' in bestOfSettings:
 							try:

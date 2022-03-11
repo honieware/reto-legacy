@@ -61,12 +61,12 @@ class Configuration(commands.Cog):
 		# If the channel "#best-of" doesn't exist, the bot creates it.
 		try:
 			server = str(ctx.message.guild.id)
-			channelsearch = discord.utils.get(ctx.guild.channels, name="best-of")
 			bestsearch = best.search(Query().serverid == server)
-			if channelsearch == None and not bestsearch:
-				await ctx.guild.create_text_channel('best-of')
-				channelid = discord.utils.get(self.client.get_all_channels(), name='best-of')
-				best.upsert({'serverid': server, 'channelid': channelid.id, 'notification': "message"}, Query().serverid == server)
+			if bestsearch:
+				existingBestOfChannel = discord.utils.get(ctx.message.guild.channels, id=bestsearch["channelid"])
+			if not bestsearch or not existingBestOfChannel:
+				bestOfChannel = await ctx.guild.create_text_channel('best-of')
+				best.upsert({'serverid': server, 'channelid': bestOfChannel.id, 'notification': "message"}, Query().serverid == server)
 				creationLog += "\n- The Best Of channel, where Starred comments lie, was created."
 		except Exception as e:
 			error = True
@@ -499,6 +499,8 @@ class Configuration(commands.Cog):
 		`{kn}`: Local karma name
 		`{ke}`: Local karma emoji
 		`{e}`: Default karma emoji
+		`{pe}`: Plus emoji
+		`{me}`: Minus emoji
 		`\\n`: Newline (pressing RETURN/ENTER)
 		"""
 		types = ["plus", "minus", "10", "10repeat"]
