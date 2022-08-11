@@ -55,13 +55,14 @@ class Configuration(commands.Cog):
 				await ctx.guild.create_role(name="Curator")
 				creationLog += "\n- The Curator role (users with this role can use the Star emoji) was created."
 		except Exception as e:
+			print(e)
 			error = True
 			errorLog = "Something happened while creating the role *Curator*. Maybe the bot doesn't have sufficient permissions?"
 		
 		# If the channel "#best-of" doesn't exist, the bot creates it.
 		try:
 			server = str(ctx.message.guild.id)
-			bestsearch = best.search(Query().serverid == server)
+			bestsearch = best.get(Query().serverid == server)
 			if bestsearch:
 				existingBestOfChannel = discord.utils.get(ctx.message.guild.channels, id=bestsearch["channelid"])
 			if not bestsearch or not existingBestOfChannel:
@@ -69,6 +70,7 @@ class Configuration(commands.Cog):
 				best.upsert({'serverid': server, 'channelid': bestOfChannel.id, 'notification': "message"}, Query().serverid == server)
 				creationLog += "\n- The Best Of channel, where Starred comments lie, was created."
 		except Exception as e:
+			print(e)
 			error = True
 			errorLog = "There was an error while trying to create the Best Of channel. May have to do with permissions?"
 
@@ -79,6 +81,7 @@ class Configuration(commands.Cog):
 				await ctx.message.author.add_roles(role)
 				creationLog += "\n- You were given the role Curator."
 		except Exception as e:
+			print(e)
 			error = True
 			errorLog = "While creating the role Curator, an error occurred. May have to do something with permissions."
 
@@ -91,6 +94,7 @@ class Configuration(commands.Cog):
 					await ctx.guild.create_custom_emoji(name="10", image=image.read(), roles=[rolesearch])
 					creationLog += "\n- The emoji Star (+10) was created. Only Curators can use it to add content to the Best Of channel!"
 		except Exception as e:
+			print(e)
 			error = True
 			errorLog = "Trying to create the role-exclusive emoji Star (10) sent out an error. Maybe there's not enough space for new emoji, or the bot doesn't have permissions."
 
@@ -102,6 +106,7 @@ class Configuration(commands.Cog):
 					await ctx.guild.create_custom_emoji(name="plus", image=image.read())
 					creationLog += "\n The emoji Heart (+1) was created."
 		except Exception as e:
+			print(e)
 			error = True
 			errorLog = "Trying to create the emoji Heart (plus) sent out an error. Maybe there's not enough space for new emoji, or the bot doesn't have permissions."
 		
@@ -113,6 +118,7 @@ class Configuration(commands.Cog):
 					await ctx.guild.create_custom_emoji(name="minus", image=image.read())
 					creationLog += "\n- The emoji Crush (-1) was created."
 		except Exception as e:
+			print(e)
 			error = True
 			errorLog = "Trying to create the emoji Crush (minus) sent out an error. Maybe there's not enough space for new emoji, or the bot doesn't have permissions."
 		
