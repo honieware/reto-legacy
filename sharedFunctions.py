@@ -788,10 +788,11 @@ async def reactionAdded(bot, payload):
 	if holiday:
 		if await treeEnabled(guild.id):
 			opener = db.get(Query()['username'] == str(userId))
-			if "shootingstar" in opener and opener["shootingstar"] > 0:
-				isShootingStar = True
-				db.update(subtract(str("shootingstar"), 1), where('username') == str(userId))
-				emojiName = "10"
+			if opener:
+				if "shootingstar" in opener and opener["shootingstar"] > 0:
+					isShootingStar = True
+					db.update(subtract(str("shootingstar"), 1), where('username') == str(userId))
+					emojiName = "10"
 
 	if ((userId != authorId) or (debug == True)) and not user.bot:
 		if not isinstance(payload.emoji, str):

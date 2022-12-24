@@ -56,7 +56,9 @@ class Holidays(commands.Cog):
 		openerId = ctx.message.author.id
 		
 		opener = db.get(Query()['username'] == str(openerId))
-		timeToComeBack = opener['lastCheckedTree'] + timeout
+		timeToComeBack = time.time()
+		if 'lastCheckedTree' in opener:
+			timeToComeBack = opener['lastCheckedTree'] + timeout
 
 		if not 'lastCheckedTree' in opener or time.time() >= timeToComeBack:
 
