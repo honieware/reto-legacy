@@ -1,5 +1,5 @@
 # Import global variables and databases.
-from definitions import botname, botowner, activity, post, priv, db, ephemeral
+from definitions import botname, botowner, activity, post, priv, db, ephemeral, best
 
 # Imports, database definitions and all that kerfuffle.
 
@@ -80,6 +80,33 @@ class Management(commands.Cog):
 				glb = await ctx.send(embed=embed)
 		else:
 			await sendErrorEmbed(ctx, "Looks like you don't have permission to do this?\n_Are you hosting " + botname + "? If so make sure your User ID is on the **botowner** array on the config.json file!_")
+	
+	#-------------------------
+	#   BROADCAST
+	#-------------------------
+	@commands.command()
+	async def broadcast(self,ctx,*args):
+		"""[BOT ADMIN ONLY] Send a message to every server's BEST OF CHANNEL. Only use for special, or breaking updates."""
+		if len(args) < 2 or len(args) > 3:
+			await sendErrorEmbed(ctx, "Wrong syntax!\n> **First argument:** The title of the broadcasted message.\n> **Second argument:** The broadcasted message's description.\n> **Third argument** (optional): Link to an image, or Null.")
+			return
+
+		for server in self.client.guilds:
+			bestOf = best.get(Query().serverid == str(server.id))
+			if not bestOf:
+				continue
+			for channel in server.channels:
+				if channel.id == bestOf["channelid"]:
+					try:
+						broadcastEmbed = discord.Embed(title=args[0], description=args[1], color=0x6db3f0)
+						if len(args) == 3:
+							broadcastEmbed.set_image(url=args[2])
+						broadcastEmbed.set_footer(text="Broadcast sent by the Reto developer team.")
+						await channel.send(embed=broadcastEmbed)
+					except Exception:
+						continue
+					else:
+						break
 
 	#-----------------
 	#   EDIT KARMA

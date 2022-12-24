@@ -64,10 +64,10 @@ def createConfigFile():
 	# Bot version
 	print("\nEnter BOT VERSION (6/11):")
 	print("The bot's current version. Appears on its Activities and other places.")
-	print("(default: 1.7 LTS)")
+	print("(default: 1.8 LTS)")
 	verInput = input("")
 	if not verInput:
-		verInput = "1.7 LTS"
+		verInput = "1.8 LTS"
 	
 	# Github Username
 	print("\nEnter GITHUB USERNAME (7/11):")
@@ -134,6 +134,7 @@ for c in cfg:
 	ephemeral = c['ephemeral']
 	ephemeral = bool(strtobool(ephemeral)) # Otherwhise, it's a string.
 	debug     = c['debug']
+	holiday   = c['holiday']
 	debug     = bool(strtobool(debug)) # Otherwhise, it's a string.
 
 
@@ -156,3 +157,5 @@ customprefix = TinyDB(encryption_key=key, path=join_path("db/","customprefix.ret
 #Prefix file: Stores a server's custom prefix.
 chan         = TinyDB(encryption_key=key, path=join_path("db/","channels.reto"), storage=tae.EncryptedJSONStorage)
 #Channel file: Used for Autovote specific channels and other channel features.
+treeroles    = TinyDB(encryption_key=key, path=join_path("db/","treeroles.reto"), storage=tae.EncryptedJSONStorage)
+#Tree Roles file: Used for storing the custom roles that can be added to Reto's Holiday Tree.

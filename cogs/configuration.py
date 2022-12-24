@@ -1,5 +1,5 @@
 # Import global variables and databases.
-from definitions import srv, best, customprefix, chan, botname, support
+from definitions import srv, best, customprefix, chan, botname, support, treeroles, holiday
 
 # Imports, database definitions and all that kerfuffle.
 
@@ -473,6 +473,89 @@ class Configuration(commands.Cog):
 		server = str(ctx.message.guild.id)
 		best.upsert({'channelid': channel.id, 'serverid': server}, Query().serverid == server)
 		await ctx.send("**Gotcha!** The new Best Of channel is now " + channel.mention + ".")
+	
+	# -------------------------
+	#	TOGGLE HOLIDAY TREE
+	# -------------------------
+
+	@commands.command(description='Enable or disable the Holiday Tree.')
+	@commands.has_permissions(manage_guild=True)
+	async def enabletree(self, ctx, *args):
+		"""Let your server members experience Reto's Holiday Tree (?enabletree on), or disable it (?enabletree off.)"""
+		if not holiday:
+			await ctx.send("🍂 The festivities have passed, and **Reto's Holiday Tree** has withered away.\nThank you for participating!")
+			return
+		if not args:
+			await sendErrorEmbed(ctx, "Enable **Reto's Holiday Tree** with `?enabletree on`, and disable it with `?enabletree off`.")
+			return
+		
+		if args[0].lower() == "on":
+			srv.upsert({'serverid': ctx.message.guild.id, 'holiday': True}, Query().serverid == ctx.message.guild.id)
+			await ctx.send("🎄 **Reto's Holiday Tree** is now active in your server! Spread holiday cheer from December 24 to January 7 by gifting presents, and getting your own with `?tree`.")
+		
+		if args[0].lower() == "off":
+			srv.upsert({'serverid': ctx.message.guild.id, 'holiday': False}, Query().serverid == ctx.message.guild.id)
+			await ctx.send("🍂 **Reto's Holiday Tree** is now disabled in your server.")
+	
+	# -------------------------
+	#	ADD GIFT ROLE
+	# -------------------------
+
+	@commands.command(description='Add a role to the Holiday Tree rotation.')
+	@commands.has_permissions(manage_guild=True)
+	async def addgiftrole(self, ctx, *args):
+		"""Add a custom role from your server to Reto's Holiday Tree."""
+		if not holiday:
+			await ctx.send("🍂 The festivities have passed, and **Reto's Holiday Tree** has withered away.\nThank you for participating!")
+			return
+		
+		if len(args) < 2:
+			await sendErrorEmbed(ctx, "Wrong syntax!\n> **First argument:** The name of the role you'd like to assign. (Between commas!)\n> **Second argument:** The weight of the item. The bigger this number is, the more common it is to get! (1 is extremely rare, 40 is very common).")
+			return
+		
+		role = discord.utils.get(ctx.message.guild.roles, name=args[0])
+		if not role:
+			await sendErrorEmbed(ctx, "We can't find a role with the name **" + args[0] + "** on your server.\nPlease check the spelling and try again.")
+			return
+		findtreeroles = treeroles.get(Query().id == role.id)
+		if findtreeroles:
+			await sendErrorEmbed(ctx, "Looks like this role already is on rotation!\nPlease remove it first (using `?removegiftrole \"" + args[0] + "\"`) before trying again.")
+			return
+		
+		treeroles.upsert({'id': role.id, 'serverid': ctx.message.guild.id, 'weight': int(args[1])}, where('serverid') == ctx.message.guild.id)
+		
+		await ctx.send("🎄 **Lovely!** The role " + args[0] + " has been added to the Holiday Tree's rotation.")
+
+	# -------------------------
+	#	REMOVE GIFT ROLE
+	# -------------------------
+
+	@commands.command(description='Remove a role from the Holiday Tree rotation.')
+	@commands.has_permissions(manage_guild=True)
+	async def removegiftrole(self, ctx, *args):
+		"""Remove a custom role from Reto's Holiday Tree's rotation."""
+		if not holiday:
+			await ctx.send("🍂 The festivities have passed, and **Reto's Holiday Tree** has withered away.\nThank you for participating!")
+			return
+			
+		if len(args) < 1:
+			await sendErrorEmbed(ctx, "Wrong syntax!\n> **First argument:** The name of the role you'd like to remove. (Between commas!)\n")
+			return
+		
+		role = discord.utils.get(ctx.message.guild.roles, name=args[0])
+		if not role:
+			await sendErrorEmbed(ctx, "We can't find a role with the name **" + args[0] + "** on your server.\nPlease check the spelling and try again.")
+			return
+		
+		findtreeroles = treeroles.get(Query().id == role.id)
+
+		if not findtreeroles:
+			await sendErrorEmbed(ctx, "We can't find a role with the name **" + args[0] + "** on the list of Tree Roles.\nPlease check the spelling and try again.")
+			return
+	
+		treeroles.remove(where('id') == role.id)
+		await ctx.send("👍 **Done!** The role " + args[0] + " has been removed from the Holiday Tree's rotation.")
+
 
 	# -------------------------
 	#	CHANGE NOTIFICATION MESSAGES

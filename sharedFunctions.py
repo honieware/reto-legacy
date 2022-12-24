@@ -1,4 +1,4 @@
-from definitions import support, botowner, prefix, debug, db, srv, post, dm, best, priv, customprefix
+from definitions import support, botowner, prefix, debug, db, srv, post, dm, best, priv, customprefix, holiday
 
 # Imports, database definitions and all that kerfuffle.
 
@@ -18,6 +18,7 @@ from datetime import datetime, date
 import logging
 import ast
 from colorthief import ColorThief
+from PIL import Image
 from colorama import init, Fore, Back, Style
 
 # ----------------------------------------------------------------------------------------------
@@ -136,27 +137,8 @@ async def getProfile(author, ctx, self):
 
 	result = db.get(Query()['username'] == searchvalor)
 
-	#
-	# GET VALUE IN GLB
-	#
-
 	if not isinstance(ctx.message.channel, discord.channel.DMChannel):
 		server = str(ctx.message.guild.id)
-	db.clear_cache()
-	lbsult = db.all() # doesnt work
-	leaderboard = {} # Prepares an empty dictionary.
-	for x in lbsult: # For each entry in the database:
-		leaderboard[x.get("username")] = int(x.get("points")) # ...save the user's ID and its amount of points in a new Python database.
-	leaderboard = sorted(leaderboard.items(), key = lambda x : x[1], reverse=True) # Sort this database by amount of points.
-	s = ""
-	leadervalue = 1
-
-	for key, value in leaderboard: # For each value in the new, sorted DB:
-		if key == searchvalor:
-			break
-		else:
-			leadervalue += 1
-
 	#
 	# GET VALUE IN LLB
 	#
@@ -182,54 +164,6 @@ async def getProfile(author, ctx, self):
 				break
 			else:
 				localvalue += 1
-
-	#
-	# GLB BADGE
-	#
-
-	if result:
-		if leadervalue == 1:
-			leaderemblem = "🥇 "
-		elif leadervalue == 2:
-			leaderemblem = "🥈 "
-		elif leadervalue == 3:
-			leaderemblem = "🥉 "
-		elif leadervalue <= 10:
-			leaderemblem = "🏅 "
-		else:
-			leaderemblem = ""
-	else:
-		leaderemblem = ""
-
-	#
-	# CHECK IF CURATOR
-	#
-
-	curatoremblem = ""
-	if not isinstance(ctx.message.channel, discord.channel.DMChannel):
-		curatoremote = self.client.get_emoji(742136325628756000)
-		role = discord.utils.get(ctx.guild.roles, name="Curator")
-		if role in author.roles:
-			curatoremblem = str(curatoremote) + " "
-
-	#
-	# CHECK IF BOTOWNER
-	#
-
-	botemblem = ""
-	for x in botowner:
-		if (int(author.id) == int(x)):
-			botemblem = "👨‍💻 "
-
-	#
-	# CHECK IF ROSEBUD USED ON USER
-	#
-
-	rosebudemblem = ""
-	if result:
-		if "modifiedkarma" in result:
-			rosebudemote = self.client.get_emoji(862441238267297834)
-			rosebudemblem = str(rosebudemote) + " "
 	
 	#
 	# POINTS SENT
@@ -260,18 +194,26 @@ async def getProfile(author, ctx, self):
 
 	# Color of embed is the dominant of the user's avatar
 	await author.avatar_url.save("images/avatar.png")
-	colorThief = ColorThief("images/avatar.png")
-	dominantColor = colorThief.get_color(quality=1)
+
+	# Make image smaller (saves time)
+	image = Image.open('images/avatar.png')
+	new_image = image.resize((64, 64))
+	new_image.save('images/smallavatar.png')
+
+	colorThief = ColorThief("images/smallavatar.png")
+	dominantColor = colorThief.get_color(quality=8)
 
 	embed=discord.Embed(title=author.name, color=discord.Colour.from_rgb(dominantColor[0], dominantColor[1], dominantColor[2]))
 	embed.set_thumbnail(url=author.avatar_url)
 	rank = ""
+	presents = ""
 
-	karmaName = await getLocalKarma("name", ctx.message)
-	karmaEmoji = await getLocalKarma("emoji", ctx.message)
 
 	if not isinstance(ctx.message.channel, discord.channel.DMChannel) and result:
-		rank = "✨ Rank     `" + str(localvalue) + "`\n"
+		karmaName = await getLocalKarma("name", ctx.message)
+		karmaEmoji = await getLocalKarma("emoji", ctx.message)
+
+		rank = "> ✨ Rank      `" + str(localvalue) + "`\n"
 		if result.get(server):
 			embed.add_field(name=karmaName, value=karmaEmoji + " " + str(result.get(server)), inline=True)
 		else:
@@ -280,16 +222,126 @@ async def getProfile(author, ctx, self):
 		embed.add_field(name="Global Karma", value="<:karma:862440157525180488> " + str(result.get('points')), inline=True)
 	else:
 		embed.add_field(name="Global Karma", value="<:karma:862440157525180488> 0", inline=True)
+	if holiday:
+		if 'openedGifts' in result:
+			presents = "> 🎁 Gifts claimed ⠀`" + str(result["openedGifts"]) + "`\n"
+		else:
+			presents = "> 🎁 Gifts claimed ⠀`0`\n"
 	if result:
-		plusEmoji = discord.utils.get(ctx.guild.emojis, name="plus")
-		if plusEmoji == None:
+		if not isinstance(ctx.message.channel, discord.channel.DMChannel):
+			plusEmoji = discord.utils.get(ctx.guild.emojis, name="plus")
+			if plusEmoji == None:
+				plusEmoji = "❤️"
+			#starEmoji = discord.utils.get(ctx.guild.emojis, name="10")
+		else:
 			plusEmoji = "❤️"
-		starEmoji = discord.utils.get(ctx.guild.emojis, name="10")
-		if not (not leaderemblem and not curatoremblem and not botemblem and not rosebudemblem):
-			embed.add_field(name="Badges", value=leaderemblem + curatoremblem + botemblem + rosebudemblem + "** **", inline=False)
-		embed.add_field(name="Stats", value=rank + "🌐 Global Rank  `" + str(leadervalue) + "`\n" + str(plusEmoji) + " Times reacted `" + str(len(sentpoints)) + "`", inline=False)
+    		
+		
+		badges = await getBadges(self, ctx, result, author, True)
+		globalRank = await getGlobalRank(ctx, author.id)
+		embed.add_field(name="Badges", value=badges + "** **", inline=False)
+		embed.add_field(name="Stats", value=rank + "> 🌐 Global Rank   `" + str(globalRank) + "`\n> " + str(plusEmoji) + " Times reacted  `" + str(len(sentpoints)) + "`\n" + presents, inline=False)
 		# + "`\n" + str(starEmoji) + " Stars received `" + str(starsrec) + "`"
+	
+	# Holiday Inventory
+	if holiday:
+		holidayInventory = []
+
+		with open('json/gifts.json') as f:
+			gifts = json.load(f)
+
+			for gift in gifts:
+				if gift["code"] in result and gift["storable"] and result[gift["code"]] > 0:
+					holidayInventory.append("\n> `(x" + str(result[gift["code"]]) + ")`  **" + gift["emoji"] + " " + gift["name"] + "**")
+			
+			if len(holidayInventory) == 0:
+				holidayInventory = "\n> **You don't have any holiday items yet!**\n> Go to the **Reto Holiday `?tree`** to get started."
+
+		embed.add_field(name="🎄 Inventory", value=''.join(holidayInventory), inline=False)
 	await ctx.send(embed=embed)
+
+async def getBadges(self, ctx, dbInfo, user, customEmoji):
+
+	leadervalue = await getGlobalRank(ctx, user.id)
+	# Global Leaderboard
+
+	if dbInfo:
+		if leadervalue == 1:
+			leaderemblem = "🥇 "
+		elif leadervalue == 2:
+			leaderemblem = "🥈 "
+		elif leadervalue == 3:
+			leaderemblem = "🥉 "
+		elif leadervalue <= 10:
+			leaderemblem = "🏅 "
+		else:
+			leaderemblem = ""
+	else:
+		leaderemblem = ""
+	
+	# Tree badge
+
+	treeemblem = ""
+	if "tree" in dbInfo and customEmoji:
+		if dbInfo["tree"] >= 20:
+			treeemblem = "<:diamondtree:1056242357898588281> "
+		elif dbInfo["tree"] >= 15:
+			treeemblem = "<:goldtree:1056242352441806888> "
+		elif dbInfo["tree"] >= 10:
+			treeemblem = "<:silvertree:1056242350927663114> "
+		elif dbInfo["tree"] >= 5:
+			treeemblem = "<:bronzetree:1056242349447073842> "
+		elif dbInfo["tree"] >= 1:
+			treeemblem = "<:tree:1056242347983257610> "
+
+	# Curator
+
+	curatoremblem = ""
+	if not isinstance(ctx.message.channel, discord.channel.DMChannel) and customEmoji:
+		curatoremote = self.client.get_emoji(742136325628756000)
+		role = discord.utils.get(ctx.guild.roles, name="Curator")
+		if hasattr(user, "roles") and role in user.roles:
+			curatoremblem = str(curatoremote) + " "
+
+	# Bot owner
+
+	botemblem = ""
+	for x in botowner:
+		if (int(user.id) == int(x)):
+			botemblem = "👨‍💻 "
+
+	# Rosebud
+
+	rosebudemblem = ""
+	if dbInfo and customEmoji:
+		if "modifiedkarma" in dbInfo:
+			rosebudemote = self.client.get_emoji(862441238267297834)
+			rosebudemblem = str(rosebudemote) + " "
+	
+	return leaderemblem + treeemblem + curatoremblem + botemblem + rosebudemblem
+
+async def getGlobalRank(ctx, userId):
+
+	#
+	# GET VALUE IN GLB
+	#
+
+	db.clear_cache()
+	lbsult = db.all() # doesnt work
+	leaderboard = {} # Prepares an empty dictionary.
+	for x in lbsult: # For each entry in the database:
+		leaderboard[x.get("username")] = int(x.get("points")) # ...save the user's ID and its amount of points in a new Python database.
+	leaderboard = sorted(leaderboard.items(), key = lambda x : x[1], reverse=True) # Sort this database by amount of points.
+	s = ""
+	leadervalue = 1
+
+	for key, value in leaderboard: # For each value in the new, sorted DB:
+		if key == str(userId):
+			break
+		else:
+			leadervalue += 1
+	
+	return leadervalue
 
 async def printLeaderboard(page, leaderboard, self, ctx, ctxMessage, ctxChannel, args, isGlobal):
 	numero = ((page-1) * 5) + 1
@@ -402,11 +454,14 @@ async def createLeaderboardEmbed(self, values, numero, ceronumero, ctx, ctxMessa
 		else:
 			emberino=discord.Embed(description=contenido, colour=discord.Colour(0xa353a9))
 		
+		authorDatabase = db.get(Query()['username'] == str(autor.id))
+		badges = await getBadges(self, ctx, authorDatabase, autor, False)
+
 		# the user may not have a profile pic!
 		if (foto):
-			emberino.set_author(name=autor.name, icon_url=foto)
+			emberino.set_author(name=autor.name + " " + badges, icon_url=foto)
 		else:
-			emberino.set_author(name=autor.name)
+			emberino.set_author(name=autor.name + " " + badges)
 
 		# the server may not have an icon!
 		if (guild.icon_url):
@@ -668,7 +723,7 @@ async def reactionAdded(bot, payload):
 	# Check notification types
 	best.clear_cache()
 	notificationMode = best.get(Query().serverid == str(serverId))
-	if notificationMode:
+	if 'notification' in notificationMode:
 		notificationMode = notificationMode['notification']
 	else:
 		notificationMode = "message"
@@ -728,9 +783,19 @@ async def reactionAdded(bot, payload):
 		}
 	}
 
+	# One-time Shooting Star
+	isShootingStar = False
+	if holiday:
+		if await treeEnabled(guild.id):
+			opener = db.get(Query()['username'] == str(userId))
+			if "shootingstar" in opener and opener["shootingstar"] > 0:
+				isShootingStar = True
+				db.update(subtract(str("shootingstar"), 1), where('username') == str(userId))
+				emojiName = "10"
+
 	if ((userId != authorId) or (debug == True)) and not user.bot:
 		if not isinstance(payload.emoji, str):
-			if any(item.lower() == emojiName for item in types.keys()):
+			if any(item.lower() == emojiName for item in types.keys()) or isShootingStar:
 
 				# Is the comment already available on the database?
 				commentExists = post.count(Query().msgid == str(messageId))
@@ -747,9 +812,10 @@ async def reactionAdded(bot, payload):
 				print(timestamp + " " + typeVariables['unicodeEmoji'] + " " + typeVariables['foreColor'] + user.name + Style.RESET_ALL + " just " + typeVariables['justDid'] + " " + typeVariables['foreColor'] + message.author.name + Style.RESET_ALL + "'s message")
 
 				# If the role requires Curator and the user doesn't have it, boot 'em out
-				if discord.utils.get(member.roles, name="Curator") is None and typeVariables['requiresCurator']:
-					await message.remove_reaction(payload.emoji, user)
-					return
+				if not isShootingStar:
+					if discord.utils.get(member.roles, name="Curator") is None and typeVariables['requiresCurator']:
+						await message.remove_reaction(payload.emoji, user)
+						return
 
 				# --- ADDING POINTS ---
 
@@ -860,6 +926,24 @@ async def getLocalKarma (nameOrEmoji, message):
 				value = curKarmaSettings['karmaemoji']
 	
 	return value
+
+async def treeEnabled(serverid):
+	server = srv.get(Query().serverid == serverid)
+	
+	if not 'holiday' in server:
+		return True
+	elif not server:
+		return False
+	else:
+		return server["holiday"]
+
+def addOrInsertToDatabase(key, value, dbId):
+	database = db.get(Query()['username'] == str(dbId))
+
+	if key in database:
+		db.update(add(key, value), where('username') == str(dbId))
+	else:
+		db.upsert({key: value}, where('username') == str(dbId))
 
 async def reactionRemoved(bot, payload):
 	if payload.guild_id is None:
