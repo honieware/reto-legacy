@@ -66,7 +66,7 @@ class Holidays(commands.Cog):
 
 			# Calculate how much you'd spend
 			priceOfTree = 0
-			maxPriceOfTree = 10
+			maxPriceOfTree = 5
 
 			if 'openedGifts' in opener:
 				priceOfTree = opener['openedGifts'] if opener['openedGifts'] < maxPriceOfTree else maxPriceOfTree
