@@ -35,15 +35,6 @@ init(autoreset=True)
 spinner = yaspin(text="Loading " + botname + "... " + Style.DIM + "(This may take a while.)", color="blue")
 spinner.start()
 
-# Set up logging
-logger = logging.getLogger('discord')
-logger.setLevel(logging.DEBUG)
-if not os.path.exists('logs'):
-    os.makedirs('logs')
-handler = logging.FileHandler(filename='logs/discord-' + datetime.now().strftime("%Y-%m-%d") + '.log', encoding='utf-8', mode='w')
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-logger.addHandler(handler)
-
 getactivities = activity.all()
 botactivity = []
 for value in getactivities:
