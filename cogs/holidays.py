@@ -59,6 +59,8 @@ class Holidays(commands.Cog):
 		timeToComeBack = time.time()
 		if 'lastCheckedTree' in opener:
 			timeToComeBack = opener['lastCheckedTree'] + timeout
+		
+		spendingTitle = "Coming to visit"
 
 		if not 'lastCheckedTree' in opener or time.time() >= timeToComeBack:
 
