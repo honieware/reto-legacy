@@ -47,7 +47,7 @@
         "received": "You received **{ke} +10 {kn}**, and your message is now in **{bm}**!",
         "giftable": true,
         "storable": true,
-        "weight": 9999
+        "weight": 2
     },
     {
         "name": "Tree Profile Badge",

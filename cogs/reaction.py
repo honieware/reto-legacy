@@ -64,7 +64,6 @@ class Reaction(commands.Cog):
 						print(timestamp + " " + emojiGift["emoji"] + " " + user.name + " gifted a " + emojiGift["name"] + " to " + reaction.message.author.name)
 						
 						if not await isPresentAvailable(emojiGift["code"], user.id):
-							await reaction.remove(reaction.message.author)
 							return
 						else:
     						# Remove present from inventory
