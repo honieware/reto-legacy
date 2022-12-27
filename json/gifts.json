@@ -7,7 +7,7 @@
         "received": "You received **{ke} +3 {kn}**!",
         "giftable": true,
         "storable": true,
-        "weight": 40
+        "weight": 30
     },
     {
         "name": "Snowball",
@@ -17,7 +17,7 @@
         "received": "You lost **{ke} -3 {kn}**!",
         "giftable": true,
         "storable": true,
-        "weight": 25
+        "weight": 20
     },
     {
         "name": "Tree Ticket",

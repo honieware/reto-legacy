@@ -39,7 +39,7 @@ class Holidays(commands.Cog):
 		if not await treeEnabled(ctx.message.guild.id):
 			await sendDisabledError(ctx)
 			return
-		
+
 		# Check if the timeout is over
 		if debug:
 			timeout = 0
@@ -56,6 +56,14 @@ class Holidays(commands.Cog):
 		openerId = ctx.message.author.id
 		
 		opener = db.get(Query()['username'] == str(openerId))
+
+		if not server:
+			await ctx.send("🚫 Before using **Reto's Holiday Tree**, set up your server with `?setup`!")
+			return
+		if not opener:
+			await ctx.send("🚫 **We can't find you in our database.** Have you tried using Reto yet? Get one of your messages reacted to and check back on the Tree later!")
+			return
+		
 		timeToComeBack = time.time()
 		if 'lastCheckedTree' in opener:
 			timeToComeBack = opener['lastCheckedTree'] + timeout
@@ -111,6 +119,15 @@ class Holidays(commands.Cog):
 				
 				description = receivedGift["description"].replace('{kn}', karmaName).replace('{ke}', karmaEmoji).replace('{bm}', bestOf)
 
+				# Give role to user (if necessary)
+				if receivedGift["code"] == "role":
+					try:
+						member = ctx.message.author # Member object that you want to add the role to
+						role = discord.utils.get(ctx.guild.roles, name = receivedGift["name"]) # The role object
+						await member.add_roles(role) # Adds the role to the member
+					except Exception as e:
+						print("Can't assign role: " + e.message)
+				
 				# Add a gift to the list
 				giftEmbed.add_field(name=receivedGift["emoji"] + "** " + receivedGift["name"] + "**", value="*" + description + "*", inline=False)
 			
@@ -163,7 +180,7 @@ def getGiftsWithRoles(server):
 
 			gifts.append({
 				"name": roleToGift.name,
-				"code": roleToGift.name.replace(" ", "").lower(),
+				"code": "role",
 				"emoji": "👑",
 				"description": "A very special **server role** has been added to your profile!",
 				"giftable": False,
