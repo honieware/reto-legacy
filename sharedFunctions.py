@@ -283,13 +283,13 @@ async def getBadges(self, ctx, dbInfo, user, customEmoji):
 
 	treeemblem = ""
 	if "tree" in dbInfo and customEmoji:
-		if dbInfo["tree"] >= 20:
+		if dbInfo["tree"] >= 5:
 			treeemblem = "<:diamondtree:1056242357898588281> "
-		elif dbInfo["tree"] >= 15:
+		elif dbInfo["tree"] >= 4:
 			treeemblem = "<:goldtree:1056242352441806888> "
-		elif dbInfo["tree"] >= 10:
+		elif dbInfo["tree"] >= 3:
 			treeemblem = "<:silvertree:1056242350927663114> "
-		elif dbInfo["tree"] >= 5:
+		elif dbInfo["tree"] >= 2:
 			treeemblem = "<:bronzetree:1056242349447073842> "
 		elif dbInfo["tree"] >= 1:
 			treeemblem = "<:tree:1056242347983257610> "

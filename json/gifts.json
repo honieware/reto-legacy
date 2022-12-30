@@ -7,7 +7,7 @@
         "received": "You received **{ke} +3 {kn}**!",
         "giftable": true,
         "storable": true,
-        "weight": 30
+        "weight": 20
     },
     {
         "name": "Snowball",
@@ -17,7 +17,7 @@
         "received": "You lost **{ke} -3 {kn}**!",
         "giftable": true,
         "storable": true,
-        "weight": 20
+        "weight": 15
     },
     {
         "name": "Tree Ticket",
@@ -37,7 +37,7 @@
         "received": "You received **{ke} +5 {kn}**!",
         "giftable": true,
         "storable": true,
-        "weight": 6
+        "weight": 7
     },
     {
         "name": "Shooting Star",
@@ -47,7 +47,7 @@
         "received": "You received **{ke} +10 {kn}**, and your message is now in **{bm}**!",
         "giftable": true,
         "storable": true,
-        "weight": 2
+        "weight": 5
     },
     {
         "name": "Tree Profile Badge",
