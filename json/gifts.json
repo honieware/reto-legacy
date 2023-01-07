@@ -7,7 +7,7 @@
         "received": "You received **{ke} +3 {kn}**!",
         "giftable": true,
         "storable": true,
-        "weight": 20
+        "weight": 15
     },
     {
         "name": "Snowball",
@@ -17,7 +17,7 @@
         "received": "You lost **{ke} -3 {kn}**!",
         "giftable": true,
         "storable": true,
-        "weight": 15
+        "weight": 10
     },
     {
         "name": "Tree Ticket",
@@ -27,7 +27,7 @@
         "received": "Your next visit to **Reto's Holiday Tree** comes free of charge!",
         "giftable": true,
         "storable": true,
-        "weight": 9
+        "weight": 8
     },
     {
         "name": "Special Present",
@@ -37,7 +37,7 @@
         "received": "You received **{ke} +5 {kn}**!",
         "giftable": true,
         "storable": true,
-        "weight": 7
+        "weight": 8
     },
     {
         "name": "Shooting Star",
@@ -57,6 +57,6 @@
         "received": "You got a **super-rare Tree badge** for your Reto profile!",
         "giftable": true,
         "storable": true,
-        "weight": 2
+        "weight": 5
     }
 ]
