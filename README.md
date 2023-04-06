@@ -1,8 +1,10 @@
-## ⚠️ Long-term Support
+## ❌ End-of-Life
 
-Starting **March 1st, 2022**, Reto (now Reto Legacy) will enter Long-Term Support, meaning no major updates aside from bug fixes will be launched. You can continue using Reto Legacy until **March 2023**, in which it'll reach End of Life and will no longer be in active development. Thank you for your support over the years!
+Reto Legacy's codebase has been discontinued on **April 6th, 2023**, after entering LTS in **March 1st, 2022**. The current open-source code is given as-is, without any planned updates or bug-fixes. Thank you so much for supporting Reto over the years!
 
-Reto isn't going anywhere, however - a version of Reto built from the ground up, code-named Retool, [is in active development](https://github.com/honiemun/reto). The hosted version of Reto (which you can invite over to your server without installing anything) will migrate to this new version between late Q2 to early Q3 2022.
+The current version of Reto Legacy (1.8) is currently being hosted on [Discord](https://discord.com/oauth2/authorize?client_id=591466921812164608&permissions=1342524496&scope=bot) until its successor, Retool (closed-source, at the moment), has finished development - keep in mind the current version may encounter performance issues due to the amount of servers it has to keep going at a time.
+
+If you have any problems with Reto Legacy, consider joining the [Support Server](https://discord.gg/RAwfrty).
 
 ***
 
