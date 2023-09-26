@@ -2,6 +2,9 @@
 from tinydb import TinyDB, Query, where
 from tinydb.operations import add, subtract, delete
 import tinydb_encrypted_jsonstorage as tae
+import re
+import sys
+import json
 
 import os.path
 from os.path import join as join_path
@@ -9,7 +12,7 @@ from os.path import exists
 
 # Dependencies and databases
 cfg = TinyDB("json/config.json")
-#key = ADD KEY HERE
+key = "" # Bring your own Encryption Key.
 
 if not os.path.exists('export/'):
     os.mkdir('export')
@@ -27,10 +30,10 @@ databases = {
 }
 
 queries = {
+    "post": databases["post"].all(),
     "db": databases["db"].all(),
     "srv": databases["srv"].all(),
     "activity": databases["activity"].all(),
-    "post": databases["post"].all(),
     "priv": databases["priv"].all(),
     "best": databases["best"].all(),
     "dm": databases["dm"].all(),
@@ -60,14 +63,26 @@ n = 1
 
 # Export
 for name, query in queries.items():
-    print("✧ Decrypting " + name + " database... (" + str(n) + "/" + str(len(databases)) + ")")
+    cleanQuery = []
+    remove = ['`', '\n', '/n', '\\n']
+    q = 1
 
     if query:
         filename = name + ".json"
         filepath = "export/" + filename
         with open(filepath, "a+", encoding="utf-8") as writeJson:
-            writeJson.write(str(query).replace("'", "\"").replace("True", "true").replace("False", "false"))
-        # os.remove(filepath)
+            for entry in query:
+                if not any(x in str(entry) for x in remove):
+                    print("✧ Decrypting " + name + " database... (" + str(q) + "/" + str(len(query)) + ")")
+                    cleanQuery.append(entry)
+                else:
+                    print("✧ Decrypting " + name + " database... (" + str(q) + "/" + str(len(query)) + ") (skipped!)")
+                    
+                q += 1
+                
+            value = json.dumps(cleanQuery).replace("True", "true").replace("False", "false")
+            #value = re.sub(r' "content": ".*?",', '', value)
+            writeJson.write(value)
     n += 1
 
 print("\nDone! You can find the .JSON files over at the /export folder.\nPlace the files of this folder in the /export/legacy path, and use the /import command (as a bot admin) in Reto v2 to import this data.")
