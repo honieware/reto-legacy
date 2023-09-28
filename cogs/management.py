@@ -1,5 +1,5 @@
 # Import global variables and databases.
-from definitions import botname, botowner, activity, post, priv, db, ephemeral
+from definitions import botname, botowner, activity, post, priv, db, ephemeral, srv
 
 # Imports, database definitions and all that kerfuffle.
 
@@ -81,6 +81,38 @@ class Management(commands.Cog):
 		else:
 			await sendErrorEmbed(ctx, "Looks like you don't have permission to do this?\n_Are you hosting " + botname + "? If so make sure your User ID is on the **botowner** array on the config.json file!_")
 
+	#-----------------
+	# EXPORT DATA (RETO V2)
+	#-----------------
+	@commands.command()
+	async def export(self,ctx,*args):
+		"""[BOT ADMIN ONLY] Add additional data to the database for later exporting."""
+
+		servers = srv.all()
+		srvAmount = 1
+		srvValids = 1
+		
+		for server in servers:
+			print("Finding server emojis... (" + str(srvAmount) + "/" + str(len(servers)) + ")")
+			srvAmount += 1
+
+			guild = self.client.get_guild(server.get('serverid'))
+			if not guild:
+				srv.remove(where('serverid') == server.get('serverid'))
+				continue
+
+			srvValids += 1
+			
+			emojis = {
+				"heart": str(discord.utils.get(guild.emojis, name="plus").id) if discord.utils.get(guild.emojis, name="plus") else False,
+				"crush": str(discord.utils.get(guild.emojis, name="minus").id) if discord.utils.get(guild.emojis, name="minus") else False,
+				"star": str(discord.utils.get(guild.emojis, name="10").id) if discord.utils.get(guild.emojis, name="10") else False
+			}
+
+			srv.upsert(emojis, Query().serverid == server.get('serverid'))
+		
+		await ctx.send("Exported all server reactables successfully. (" + str(srvValids) + "/" + str(len(servers)) + ")\nTo continue the Export process, run `python unencrypt-databases.py` - and then run `/export legacy` with the files you've now got access to on Reto v2!")
+		
 	#-----------------
 	#   EDIT KARMA
 	#-----------------
