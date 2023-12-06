@@ -1,5 +1,5 @@
 # Import global variables and databases.
-from definitions import debug, db, post, priv, best, dm, chan, customprefix
+from definitions import debug, db, post, priv, best, dm, chan, customprefix, holiday
 
 # Imports, database definitions and all that kerfuffle.
 
@@ -17,9 +17,10 @@ import json
 import random
 from datetime import datetime, date
 import logging
+import json
 
 # sharedFunctions
-from sharedFunctions import printLeaderboard, createLeaderboardEmbed, getProfile, sendErrorEmbed
+from sharedFunctions import printLeaderboard, createLeaderboardEmbed, getProfile, sendErrorEmbed, addOrInsertToDatabase, treeEnabled, formatMessage, getTimestamp
 
 # ----------------------------------------------------------------------------------------------
 
@@ -44,6 +45,46 @@ class Reaction(commands.Cog):
 		User  = Query()
 		if ((user.id != reaction.message.author.id) or (debug == True)) and not user.bot:
 			if isinstance(reaction.emoji, str):
+				# -------------------------
+				#     HOLIDAY REACTIONS
+				# -------------------------	
+
+				if holiday:
+					if not await treeEnabled(reaction.message.guild.id):
+						return
+    					
+					with open('json/gifts.json') as f:
+
+						gifts = json.load(f)
+						emojiGifts = [gift for gift in gifts if gift["emoji"] == reaction.emoji]
+
+						if not emojiGifts: return
+						emojiGift = emojiGifts[0]
+						timestamp = await getTimestamp()
+						print(timestamp + " " + emojiGift["emoji"] + " " + user.name + " gifted a " + emojiGift["name"] + " to " + reaction.message.author.name)
+						
+						if not await isPresentAvailable(emojiGift["code"], user.id):
+							return
+						else:
+    						# Remove present from inventory
+							if emojiGift["code"] != "shootingstar": # We remove this in the reaction code due to lag issues
+								db.update(subtract(str(emojiGift["code"]), 1), where('username') == str(value))
+							
+							# Apply present effect
+							if emojiGift["code"] == "present":
+								addOrInsertToDatabase(str(reaction.message.guild.id), 3, reaction.message.author.id)
+							if emojiGift["code"] == "specialpresent":
+								addOrInsertToDatabase(str(reaction.message.guild.id), 5, reaction.message.author.id)
+							if emojiGift["code"] == "snowball":
+								addOrInsertToDatabase(str(reaction.message.guild.id), -3, reaction.message.author.id)
+							if emojiGift["code"] == "ticket":
+								addOrInsertToDatabase("ticket", 1, reaction.message.author.id)
+							if emojiGift["code"] == "tree":
+								addOrInsertToDatabase("tree", 1, reaction.message.author.id)
+
+							# Send message
+							await sendPresentMessage(emojiGift, reaction.message, reaction.message.channel, user, reaction.message.author)
+    							
 
 				# -------------------------
 				#  REACTION = :WASTEBASKET:
@@ -166,6 +207,29 @@ async def deleteMessages(reaction):
 	for x in messageIds:
 		msg = await channel.fetch_message(x)
 		await msg.delete()
+
+async def isPresentAvailable(presentCode, userId):
+	database = db.get(Query()['username'] == str(userId))
+	if not presentCode in database:
+		return False
+	elif database[presentCode] > 0:
+		return True
+	else:
+		return False
+
+async def sendPresentMessage(emojiGift, message, ctx, gifter, gifted):
+	description = await formatMessage(emojiGift["received"], message)
+
+	embed = discord.Embed(
+		title=emojiGift["emoji"] + " " + gifter.name + " gifted " + gifted.name + " a **" + emojiGift["name"] + "**!",
+		description=description,
+		color=0x9bf376
+	)
+	embed.set_footer(text="This message will self-destruct in 10 seconds.")
+	message = await ctx.send(embed=embed)					
+	await asyncio.sleep(10) 
+	await message.delete()
+
 
 def setup(client):
 	client.add_cog(Reaction(client))

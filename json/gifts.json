@@ -1,0 +1,62 @@
+[
+    {
+        "name": "Present",
+        "code": "present",
+        "emoji": "🎁",
+        "description": "Give a lucky user the gift of **{ke} +3 {kn}**.",
+        "received": "You received **{ke} +3 {kn}**!",
+        "giftable": true,
+        "storable": true,
+        "weight": 15
+    },
+    {
+        "name": "Snowball",
+        "code": "snowball",
+        "emoji": "⚪",
+        "description": "Curse a deserving user with **{ke} -3 {kn}**.",
+        "received": "You lost **{ke} -3 {kn}**!",
+        "giftable": true,
+        "storable": true,
+        "weight": 10
+    },
+    {
+        "name": "Tree Ticket",
+        "code": "ticket",
+        "emoji": "🎫",
+        "description": "Your next visit to **Reto's Holiday Tree** is free! (You can also gift this to someone else.)",
+        "received": "Your next visit to **Reto's Holiday Tree** comes free of charge!",
+        "giftable": true,
+        "storable": true,
+        "weight": 8
+    },
+    {
+        "name": "Special Present",
+        "code": "specialpresent",
+        "emoji": "💝",
+        "description": "Give a very special user the gift of **{ke} +5 {kn}**.",
+        "received": "You received **{ke} +5 {kn}**!",
+        "giftable": true,
+        "storable": true,
+        "weight": 8
+    },
+    {
+        "name": "Shooting Star",
+        "code": "shootingstar",
+        "emoji": "🌟",
+        "description": "React to any message with 🌟 to send it to **{bm}** (and give the author **{ke} +10 {kn}**.) One-use only!",
+        "received": "You received **{ke} +10 {kn}**, and your message is now in **{bm}**!",
+        "giftable": true,
+        "storable": true,
+        "weight": 5
+    },
+    {
+        "name": "Tree Profile Badge",
+        "code": "tree",
+        "emoji": "🎄",
+        "description": "You get a **super-rare Tree badge** on your Reto profile! Celebrate the festivities all year 'round.\nThis is an evolving badge - the more of these you collect, the shinier the Tree gets!",
+        "received": "You got a **super-rare Tree badge** for your Reto profile!",
+        "giftable": true,
+        "storable": true,
+        "weight": 5
+    }
+]

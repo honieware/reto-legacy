@@ -4,7 +4,7 @@ with open("README.md", 'r', encoding="utf8") as f:
     long_description = f.read()
 
 setup(name='Reto Legacy',
-      version='1.7 LTS',
+      version='1.8 LTS',
       description='Vote-handling Discord bot! React on messages, give points to the best commenters, and Star stuff to put it in the Best Of channel.',
       long_description=long_description,
       url='http://github.com/honiemun/reto-legacy',
@@ -20,6 +20,8 @@ setup(name='Reto Legacy',
           'colorama',
           'yaspin',
           'colorthief',
-          'requests'
+          'requests',
+          'json',
+          'PIL'
       ],
       zip_safe=False)

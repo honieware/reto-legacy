@@ -19,7 +19,7 @@ from datetime import datetime, date
 import logging
 
 # sharedFunctions
-from sharedFunctions import getLocalKarma, printLeaderboard, createLeaderboardEmbed, getProfile, sendErrorEmbed, getCurrentPrefix, getLocalKarma
+from sharedFunctions import getLocalKarma, printLeaderboard, createLeaderboardEmbed, getProfile, sendErrorEmbed, getCurrentPrefix, getLocalKarma, getBadges
 
 # ----------------------------------------------------------------------------------------------
 
@@ -68,28 +68,24 @@ class Karma(commands.Cog):
 		leaderboard = sorted(leaderboard.items(), key = lambda x : x[1], reverse=True) # Sort this database by amount of points.
 		s = ""
 		i = 0
+		embed = discord.Embed(title="Global Leaderboard", colour=discord.Colour(0xa353a9), description=s)
 		for key, value in leaderboard: # For each value in the new, sorted DB:
 			if i != 10:
 				user = self.client.get_user(key)
 				if not user:
 					user = await self.client.fetch_user(key)
-				# Check if someone is a dirty lil cheater
-				userData = db.search(Query().username == key)
-				rosebudemblem = ""
-				if len(userData) >= 1:
-					if "modifiedkarma" in userData[0]:
-						rosebudemote = self.client.get_emoji(862441238267297834)
-						rosebudemblem = str(rosebudemote)
+				
+				badges = await getBadges(self, ctx, db.get(Query()['username'] == str(user.id)), user, True)
+
 				if i==0:
-					s += ("🥇 " + str(user) + " - <:karma:862440157525180488> " + str(value) +" **Karma** " + rosebudemblem + "\n")
+					embed.add_field(name="[🥇] " + str(user.name) + " " + badges, value="<:karma:862440157525180488> " + str(value) + " **Karma** ", inline=False)
 				elif i==1:
-					s += ("🥈 " + str(user) + " - <:karma:862440157525180488> " + str(value) +" **Karma** " + rosebudemblem + "\n")
+					embed.add_field(name="[🥈] " + str(user.name) + " " + badges, value="<:karma:862440157525180488> " + str(value) + " **Karma** ", inline=False)
 				elif i==2:
-					s += ("🥉 " + str(user) + " - <:karma:862440157525180488> " + str(value) +" **Karma** " + rosebudemblem + "\n")
+					embed.add_field(name="[🥉] " + str(user.name) + " " + badges, value="<:karma:862440157525180488> " + str(value) + " **Karma** ", inline=False)
 				else:
-					s += ("✨ " + str(user) + " - <:karma:862440157525180488> " + str(value) +" **Karma** " + rosebudemblem + "\n")
+					embed.add_field(name="[✨] " + str(user.name) + " " + badges, value="<:karma:862440157525180488> " + str(value) + " **Karma** ", inline=False)
 				i = i+1
-		embed = discord.Embed(title="Global Leaderboard", colour=discord.Colour(0xa353a9), description=s)
 		glb = await ctx.send(embed=embed)
 
 	# --------------------------
@@ -99,6 +95,9 @@ class Karma(commands.Cog):
 	@commands.command(aliases=['lb', 'llb'], description="Check the top 10 users of your server! May take a while to load.\nYou can also use ?lb global to rank server users' Global Karma totals.")
 	async def leaderboard(self, ctx, *args):
 		"""Check this server's users with the most karma."""
+		if isinstance(ctx.message.channel, discord.channel.DMChannel):
+			await sendErrorEmbed(ctx, "You can't use this command outside a server!\nTry using `?glb` to check the global leaderboards, instead.")
+			return
 
 		db.clear_cache()
 		User = Query()
@@ -116,20 +115,13 @@ class Karma(commands.Cog):
 		s = ""
 		i = 0
 
-		print(leaderboard)
+		embed = discord.Embed(title="Server Leaderboard", colour=discord.Colour(0xa353a9), description=s)
 
 		for key, value in leaderboard: # For each value in the new, sorted DB:
 			if i != 25:
 				user = self.client.get_user(key)
 				if not user:
 					user = await self.client.fetch_user(key)
-				# Check if someone is a dirty lil cheater
-				userData = db.search(Query().username == key)
-				rosebudemblem = ""
-				if len(userData) >= 1:
-					if "modifiedkarma" in userData[0]:
-						rosebudemote = self.client.get_emoji(862441238267297834)
-						rosebudemblem = str(rosebudemote)
 				
 				if len(args) == 0 or args[0] != "global":
 					karmaName = await getLocalKarma("name", ctx.message)
@@ -137,20 +129,19 @@ class Karma(commands.Cog):
 				else:
 					karmaName = "Karma"
 					karmaEmoji = "<:karma:862440157525180488>"
+				
+				badges = await getBadges(self, ctx, db.get(Query()['username'] == str(user.id)), user, True)
 
 				if i==0:
-					s += ("🥇 " + str(user.name) + " - " + karmaEmoji + " " + str(value) +" **" + karmaName + "** " + rosebudemblem + "\n")
+					embed.add_field(name="[🥇] " + str(user.name) + " " + badges, value=karmaEmoji + " " + str(value) +" **" + karmaName + "** ", inline=False)
 				elif i==1:
-					s += ("🥈 " + str(user.name) + " - " + karmaEmoji + " " + str(value) +" **" + karmaName + "** " + rosebudemblem + "\n")
+					embed.add_field(name="[🥈] " + str(user.name) + " " + badges, value=karmaEmoji + " " + str(value) +" **" + karmaName + "** ", inline=False)
 				elif i==2:
-					s += ("🥉 " + str(user.name) + " - " + karmaEmoji + " " + str(value) +" **" + karmaName + "** " + rosebudemblem + "\n")
+					embed.add_field(name="[🥉] " + str(user.name) + " " + badges, value=karmaEmoji + " " + str(value) +" **" + karmaName + "** ", inline=False)
 				else:
-					s += ("✨ " + str(user.name) + " - " + karmaEmoji + " " + str(value) +" **" + karmaName + "** " + rosebudemblem + "\n")
+					embed.add_field(name="[✨] " + str(user.name) + " " + badges, value=karmaEmoji + " " + str(value) +" **" + karmaName + "** ", inline=False)
 				i = i+1
-		embed = discord.Embed(title="Server Leaderboard", colour=discord.Colour(0xa353a9), description=s)
-		karmaName = await getLocalKarma("name", ctx.message)
-		if len(args) == 0 or args[0] != "global":
-			embed.set_footer(text="Looking empty? This leaderboard shows " + karmaName + " rankings now, so start voting!\nYou can also use ?lb global to rank server users' Global Karma instead.")
+		#karmaName = await getLocalKarma("name", ctx.message)
 		glb = await ctx.send(embed=embed)
 		
 	# ---------------------------------
@@ -188,6 +179,11 @@ class Karma(commands.Cog):
 	@commands.command(aliases=['splb', 'plb', 'serverpostleaderboard', 'postleaderboards', 'serverpostleaderboards'], description="Check the top 10 posts of all time on this server! May take a while to load. By default, it shows all comments regardless if they were posted in Not Safe for Work channels or not - ?plb nsfw will let you see NSFW posts only, and ?plb sfw will let you see only SFW posts.")
 	async def postleaderboard(self, ctx, *args):
 		"""Shows posts with most karma on this server!"""
+		
+		if isinstance(ctx.message.channel, discord.channel.DMChannel):
+			await sendErrorEmbed(ctx, "You can't use this command outside a server!\nTry using `?gplb` instead to check the global Post Leaderboards.")
+			return
+
 		currentguild = str(ctx.message.guild.id)
 		User = Query()
 
