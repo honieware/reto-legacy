@@ -35,10 +35,8 @@ class Management(commands.Cog):
 	def __init__(self, client):
 		self.client = client
 		# Global variable related to periodical comment deletion.
-		self.commentDeleter.start()
-
-	def cog_unload(self):
-		self.commentDeleter.cancel()
+		# Disabled, as we debug the cause for Reto's periodic crashes.
+		# self.commentDeleter.start()
 	
 	#-------------------------
 	#   MANAGEMENT COMMANDS

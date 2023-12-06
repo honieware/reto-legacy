@@ -31,10 +31,6 @@ from sharedFunctions import sendErrorEmbed, reactionAdded, reactionRemoved, getT
 # Start Colorama ANSI
 init(autoreset=True)
 
-# Loading icon
-spinner = yaspin(text="Loading " + botname + "... " + Style.DIM + "(This may take a while.)", color="blue")
-spinner.start()
-
 # Set up logging
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
@@ -138,9 +134,6 @@ async def on_ready():
 	else:
 		# Linux
 		os.system('clear')
-
-	# Stop spinner
-	spinner.stop()
 	
 	# Coloured Reto banner
 	# Kinda hardcoded, but the alternative wasn't pretty either
@@ -163,24 +156,6 @@ async def on_ready():
 		print ('⚠️ ' + Fore.YELLOW + ' Running on Debug Mode' + Style.RESET_ALL + '. Disable it after you\'re done in json/config.json.')
 	print ("🫂  Invite link: " + Fore.BLUE + "https://discord.com/oauth2/authorize?client_id=" + str(bot.user.id) + "&permissions=1342524496&scope=bot")
 	
-	# Check for updates
-	updateSpinner = yaspin(text="Looking for updates...", color="red")
-	updateSpinner.start()
-	r = requests.get("https://api.github.com/repos/" + gusername + "/" + grepo + "/releases")
-	j=r.json()
-	if j:
-		if not "message" in j:
-			if j[0]["tag_name"] != botver:
-				updateSpinner.stop()
-				print("🛑 [v" + j[0]["tag_name"] + "] " + Fore.RED + "A new version of " + botname + " is available!\n"
-						+ Style.RESET_ALL + "   Get it at " + Fore.BLUE + "https://github.com/honiemun/reto-legacy/releases")
-			else:
-				updateSpinner.text = "You're up to date!"
-				await asyncio.sleep(1)
-		else:
-			updateSpinner.text = "Something went wrong while fetching updates."
-			await asyncio.sleep(1)			
-	updateSpinner.stop()
 	print('\n' + '─' * 25 + " Get started with " + Fore.GREEN + "?setup " + Style.RESET_ALL + '─' * 25 + '\n')
 
 	# Warning for users who've yet to migrate to the new database system. (really, you guys?)
@@ -220,7 +195,7 @@ async def on_guild_join(guild):
 
 async def statusupdates():
 	while True:
-		await asyncio.sleep(60)
+		await asyncio.sleep(120)
 
 		# update the activity list
 		activity.clear_cache()
